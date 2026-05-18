@@ -1,0 +1,226 @@
+:root {
+  color-scheme: dark;
+  --sj-bg: rgba(12, 13, 16, 0.84);
+  --sj-bg-strong: rgba(22, 24, 29, 0.92);
+  --sj-text: #f7f7f5;
+  --sj-muted: #b7b8bd;
+  --sj-subtle: #858894;
+  --sj-accent: #7bdff2;
+  --sj-progress-bg: rgba(255, 255, 255, 0.18);
+  --sj-border: rgba(255, 255, 255, 0.14);
+  --sj-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --sj-bg: rgba(247, 248, 246, 0.88);
+  --sj-bg-strong: rgba(255, 255, 255, 0.94);
+  --sj-text: #16181d;
+  --sj-muted: #4d5562;
+  --sj-subtle: #6f7784;
+  --sj-accent: #207f92;
+  --sj-progress-bg: rgba(22, 24, 29, 0.16);
+  --sj-border: rgba(22, 24, 29, 0.12);
+  --sj-shadow: 0 18px 50px rgba(10, 20, 28, 0.14);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  block-size: 100%;
+  margin: 0;
+}
+
+body {
+  display: grid;
+  place-items: center;
+  background: transparent;
+  color: var(--sj-text);
+  overflow: hidden;
+}
+
+#app {
+  display: grid;
+  inline-size: 100%;
+  padding: 18px;
+  place-items: center;
+  transition:
+    opacity 220ms ease,
+    transform 220ms ease,
+    visibility 220ms ease;
+}
+
+#app[data-view="hidden"] {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.sj-widget {
+  display: grid;
+  grid-template-columns: 86px minmax(0, 1fr);
+  gap: 14px;
+  inline-size: min(440px, 100%);
+  min-block-size: 116px;
+  padding: 14px;
+  border: 1px solid var(--sj-border);
+  border-radius: 8px;
+  background: linear-gradient(140deg, var(--sj-bg), var(--sj-bg-strong));
+  box-shadow: var(--sj-shadow);
+  backdrop-filter: blur(18px);
+}
+
+.sj-art {
+  display: grid;
+  overflow: hidden;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  background:
+    linear-gradient(135deg, rgba(123, 223, 242, 0.24), rgba(255, 255, 255, 0.04)),
+    rgba(255, 255, 255, 0.08);
+  background-position: center;
+  background-size: cover;
+  color: var(--sj-accent);
+  font-size: 18px;
+  font-weight: 800;
+  place-items: center;
+}
+
+.sj-art.has-art span {
+  display: none;
+}
+
+.sj-copy {
+  min-inline-size: 0;
+}
+
+.sj-source {
+  min-block-size: 15px;
+  color: var(--sj-subtle);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.sj-title,
+.sj-artist,
+.sj-album {
+  overflow: hidden;
+  margin: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sj-title {
+  margin-block-start: 3px;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.sj-artist {
+  margin-block-start: 5px;
+  color: var(--sj-muted);
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.25;
+}
+
+.sj-album {
+  margin-block-start: 2px;
+  color: var(--sj-subtle);
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.sj-progress {
+  overflow: hidden;
+  block-size: 5px;
+  margin-block-start: 13px;
+  border-radius: 999px;
+  background: var(--sj-progress-bg);
+}
+
+.sj-progress-fill {
+  display: block;
+  block-size: 100%;
+  inline-size: 0%;
+  border-radius: inherit;
+  background: var(--sj-accent);
+  transition: inline-size 180ms linear;
+}
+
+.sj-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-block-start: 7px;
+  color: var(--sj-subtle);
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.sj-status,
+.sj-time {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sj-link {
+  display: inline-flex;
+  margin-block-start: 14px;
+  color: var(--sj-accent);
+  font-size: 13px;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+#app[data-view="compact"] .sj-widget {
+  grid-template-columns: minmax(0, 1fr);
+  inline-size: min(360px, 100%);
+  min-block-size: auto;
+  padding: 12px 14px;
+}
+
+#app[data-view="compact"] .sj-art,
+#app[data-view="compact"] .sj-album,
+#app[data-view="compact"] .sj-source {
+  display: none;
+}
+
+#app[data-view="compact"] .sj-title {
+  font-size: 17px;
+}
+
+#app[data-view="compact"] .sj-artist {
+  font-size: 12px;
+}
+
+.sj-error {
+  grid-template-columns: 1fr;
+}
+
+@media (max-width: 360px) {
+  #app {
+    padding: 10px;
+  }
+
+  .sj-widget {
+    grid-template-columns: 64px minmax(0, 1fr);
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .sj-title {
+    font-size: 18px;
+  }
+}

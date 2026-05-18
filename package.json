@@ -1,0 +1,13 @@
+{
+  "name": "stream-jams-music-widget",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "validate": "node --test && node scripts/validate-static-pages.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

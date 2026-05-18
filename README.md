@@ -39,6 +39,40 @@ The first implementation plan should decide how much of this surface belongs in 
 - Integration-ready: structured so playback data can later come from Spotify, YouTube Music, or another local source.
 - Stream-safe: no secrets, credentials, or private playback tokens embedded in the static page.
 
-## Current Status
+## First Iteration
 
-This repository currently contains only the project intention. Implementation details, architecture, and integration choices are intentionally pending discussion.
+This repository now contains a static first pass of the widget:
+
+- `setup.html` builds an OBS-ready overlay URL.
+- `index.html` renders the overlay.
+- `src/` contains testable ES modules for config parsing, source integration, state normalization, progress interpolation, and rendering.
+- `tests/` covers the pure behavior that should stay stable as integrations are added.
+- `.github/workflows/validate.yml` is ready to run validation in GitHub Actions.
+
+The planned default Pear Desktop URL is:
+
+```text
+index.html?integration=pear-youtube-music&host=127.0.0.1&port=26538&transport=auto&initialView=full&idleMode=none&idleAfter=30&theme=dark
+```
+
+Mock mode is available for styling and smoke testing without Pear Desktop:
+
+```text
+index.html?integration=mock&theme=dark&initialView=full&idleMode=compact&idleAfter=30
+```
+
+## Development
+
+The project is dependency-free for the first iteration and uses ES modules.
+
+```bash
+npm test
+npm run validate
+```
+
+In this local workspace, Node is not available inside WSL 1, so the same test files can also be checked with Deno:
+
+```bash
+deno test --allow-read --no-check
+deno run --allow-read scripts/validate-static-pages.js
+```
