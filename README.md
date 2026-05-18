@@ -1,6 +1,6 @@
-# Stream Jams
+# Stream Jams Music Widget
 
-Stream Jams is a small static HTML overlay intended for use as a browser source in OBS Studio. Its goal is to give stream viewers a clean, minimal view of the music currently playing on the user's local system without taking over the scene.
+Stream Jams Music Widget is a small static HTML overlay intended for use as a browser source in OBS Studio. Its goal is to give stream viewers a clean, minimal view of the music currently playing on the user's local system without taking over the scene.
 
 The app is planned as a compact now-playing display that can sit in a corner, along an edge, or within a small reserved area of a stream layout. It should be readable at streaming resolutions, visually quiet enough not to distract from the main content, and flexible enough to match different scene styles.
 
@@ -18,7 +18,7 @@ The playback progress should be represented with a playhead or progress bar so v
 
 ## Integration Direction
 
-Stream Jams is intended to eventually support integrations with local music playback sources. Spotify and YouTube Music are the initial targets, but the exact integration strategy is intentionally left undecided for now.
+Stream Jams Music Widget is intended to eventually support integrations with local music playback sources. Spotify and YouTube Music are the initial targets, but the exact integration strategy is intentionally left undecided for now.
 
 Possible future directions may include:
 
