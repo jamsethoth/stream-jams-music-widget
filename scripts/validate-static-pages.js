@@ -28,8 +28,11 @@ for (const htmlFile of ["index.html", "setup.html"]) {
     if (!contents.includes("<!doctype html>")) {
       failures.push(`${htmlFile} must declare <!doctype html>`);
     }
-    if (!contents.includes('type="module"')) {
-      failures.push(`${htmlFile} must load JavaScript as an ES module`);
+    if (contents.includes('type="module"')) {
+      failures.push(`${htmlFile} must not use ES module scripts because file:/// OBS/browser loading blocks module imports with CORS errors`);
+    }
+    if (!contents.includes(`src="browser/${htmlFile.replace(".html", "")}.js"`)) {
+      failures.push(`${htmlFile} must load its file-safe browser script`);
     }
   } catch {
     // Missing file is already reported above.
