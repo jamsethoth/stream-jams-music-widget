@@ -139,16 +139,18 @@ body {
 
 .sj-title.is-overflowing span,
 .sj-details.is-overflowing span {
-  animation: sj-marquee var(--sj-scroll-duration, 14s) linear infinite alternate;
+  animation: sj-marquee var(--sj-scroll-duration, 14s) linear infinite;
   padding-inline-end: 18px;
 }
 
 @keyframes sj-marquee {
-  from {
+  0%,
+  18% {
     transform: translateX(0);
   }
 
-  to {
+  82%,
+  100% {
     transform: translateX(calc(-1 * var(--sj-scroll-distance, 24px)));
   }
 }
