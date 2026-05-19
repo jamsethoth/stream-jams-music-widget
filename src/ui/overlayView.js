@@ -54,7 +54,7 @@ export class OverlayView {
       <section class="sj-widget sj-error" aria-live="assertive">
         <div class="sj-copy">
           <h1 class="sj-title">Widget setup needed</h1>
-          <p class="sj-artist">${escapeHtml(errors.join(" "))}</p>
+          <p class="sj-error-message">${escapeHtml(errors.join(" "))}</p>
           <a class="sj-link" href="setup.html">Open setup</a>
         </div>
       </section>

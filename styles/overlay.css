@@ -209,6 +209,21 @@ body {
   grid-template-columns: 1fr;
 }
 
+.sj-error .sj-title,
+.sj-error-message {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+.sj-error-message {
+  margin: 6px 0 0;
+  color: var(--sj-muted);
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
 @media (max-width: 360px) {
   #app {
     padding: 10px;
