@@ -14,6 +14,7 @@ The widget is designed to sit in a corner, along an edge, or inside a reserved s
 - Dark and light themes.
 - Playback progress display.
 - Optional idle behavior to hide or collapse the widget.
+- Optional `styles/custom-theme.css` override for local runtime styling.
 - Runtime package generation for local hosting or direct file use.
 
 ## Runtime Files
@@ -46,6 +47,16 @@ The default Pear Desktop overlay URL is:
 index.html?integration=pear-youtube-music&host=127.0.0.1&port=26538&transport=auto&initialView=full&idleMode=none&idleAfter=30&theme=dark
 ```
 
+## Custom Styling
+
+The runtime automatically looks for an optional stylesheet at:
+
+```text
+styles/custom-theme.css
+```
+
+To customize the overlay, add that file manually to the `styles/` directory next to `overlay.css` in your runtime package. The widget loads `styles/custom-theme.css` after the default overlay stylesheet when it is present, so your rules can override the defaults. If the file is missing, the browser falls back to the default styles without any setup changes or URL parameters.
+
 ## Mock Mode
 
 Mock mode is available for styling and smoke testing without Pear Desktop:
@@ -57,7 +68,7 @@ index.html?integration=mock&theme=dark&initialView=full&idleMode=compact&idleAft
 ## Project Structure
 
 - `src/`: source of truth for application logic, written as testable ES modules.
-- `browser/`: generated browser bundles built from `src/`.
+- `browser/`: generated browser bundles built from `src/`; ignored by git and rebuilt during validation and packaging.
 - `styles/`: CSS for the overlay and setup page.
 - `tests/`: Node test coverage for config parsing, state normalization, progress interpolation, and Pear event handling.
 - `scripts/`: build, validation, and runtime packaging scripts.
@@ -90,10 +101,18 @@ Run the full validation suite:
 npm run validate
 ```
 
+Validation rebuilds the generated browser bundles before checking the static pages.
+
 Create a local runtime package:
 
 ```bash
 npm run package
+```
+
+Validate the generated runtime package:
+
+```bash
+npm run verify:package
 ```
 
 The package command creates:
@@ -118,10 +137,10 @@ Releases are created manually through the GitHub Actions `Release` workflow.
 The release workflow:
 
 1. Accepts a semantic version input.
-2. Installs dependencies.
-3. Builds `browser/` from `src/`.
-4. Validates tests and static files.
-5. Creates a runtime-only zip.
+2. Validates that the version is semantic and does not include a leading `v`.
+3. Installs dependencies.
+4. Validates tests and static files, rebuilding `browser/` from `src/`.
+5. Creates and verifies a runtime-only zip.
 6. Creates and pushes a `v<version>` tag.
 7. Creates a GitHub Release with generated release notes.
 8. Attaches the runtime zip as a downloadable release asset.

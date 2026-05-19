@@ -15,7 +15,7 @@ export function startOverlayApp(root = document.querySelector("#app"), href = gl
   view.setBackgroundOpacity(config.backgroundOpacity);
   view.setAlignment(config.widgetAlignment);
   view.setView(config.initialView);
-  loadCustomCss(config.customCss);
+  loadOptionalCustomTheme();
 
   const source = createMusicSource(config);
   let currentView = config.initialView;
@@ -74,13 +74,17 @@ export function startOverlayApp(root = document.querySelector("#app"), href = gl
   };
 }
 
-function loadCustomCss(path) {
-  if (!path) {
-    return;
-  }
-  const link = document.createElement("link");
+export function createCustomThemeStylesheet(environment = globalThis) {
+  const link = environment.document.createElement("link");
   link.rel = "stylesheet";
-  link.href = path;
+  link.href = "styles/custom-theme.css";
+  link.dataset.optional = "true";
+  return link;
+}
+
+function loadOptionalCustomTheme() {
+  const link = createCustomThemeStylesheet();
+  link.addEventListener("error", () => link.remove(), { once: true });
   document.head.append(link);
 }
 

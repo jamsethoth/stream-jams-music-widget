@@ -44,8 +44,8 @@ export class SetupView {
                 <li>Confirm the host and port below.</li>
               </ol>
               <div class="setup-grid">
-                <label>Host <input name="host" value="${initialValues.host}" autocomplete="off"></label>
-                <label>Port <input name="port" type="number" min="1" max="65535" value="${initialValues.port}"></label>
+                <label>Host <input name="host" value="${escapeAttribute(initialValues.host)}" autocomplete="off"></label>
+                <label>Port <input name="port" type="number" min="1" max="65535" value="${escapeAttribute(initialValues.port)}"></label>
                 <label>Transport
                   <select name="transport">
                     ${option("auto", "Auto", initialValues.transport)}
@@ -78,7 +78,7 @@ export class SetupView {
                   </select>
                 </label>
                 <label>Idle after
-                  <input name="idleAfter" type="number" min="1" max="600" value="${initialValues.idleAfter}">
+                  <input name="idleAfter" type="number" min="1" max="600" value="${escapeAttribute(initialValues.idleAfter)}">
                 </label>
                 <label>Alignment
                   <select name="widgetAlignment">
@@ -86,12 +86,10 @@ export class SetupView {
                   </select>
                 </label>
                 <label class="setup-wide setup-range-label">
-                  Background opacity <output data-background-opacity>${initialValues.backgroundOpacity}%</output>
-                  <input name="backgroundOpacity" type="range" min="0" max="100" step="1" value="${initialValues.backgroundOpacity}">
+                  Background opacity <output data-background-opacity>${escapeHtml(initialValues.backgroundOpacity)}%</output>
+                  <input name="backgroundOpacity" type="range" min="0" max="100" step="1" value="${escapeAttribute(initialValues.backgroundOpacity)}">
                 </label>
-                <label class="setup-wide">Custom CSS
-                  <input name="customCss" value="${initialValues.customCss}" placeholder="custom-theme.css">
-                </label>
+                <p class="setup-wide setup-help">Optional custom styling is loaded automatically from styles/custom-theme.css when that file is present in the runtime package.</p>
               </div>
             </fieldset>
             <div class="setup-actions">
@@ -182,5 +180,17 @@ function sourceCard(integration) {
 
 function option(value, label, selected) {
   const selectedAttr = value === selected ? " selected" : "";
-  return `<option value="${value}"${selectedAttr}>${label}</option>`;
+  return `<option value="${escapeAttribute(value)}"${selectedAttr}>${escapeHtml(label)}</option>`;
+}
+
+export function escapeAttribute(value) {
+  return escapeHtml(String(value ?? "")).replaceAll("'", "&#39;");
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
 }

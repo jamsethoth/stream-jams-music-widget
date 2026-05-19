@@ -1,4 +1,4 @@
-import { writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { build } from "esbuild";
 
 const generatedBanner = `/*
@@ -39,7 +39,9 @@ export async function buildBrowserBundles(options = {}) {
     const contents = result.outputFiles[0].text;
     results.push({ ...bundle, contents });
     if (shouldWrite) {
-      await writeFile(new URL(`../${bundle.outputPath}`, import.meta.url), contents);
+      const outputUrl = new URL(`../${bundle.outputPath}`, import.meta.url);
+      await mkdir(new URL("./", outputUrl), { recursive: true });
+      await writeFile(outputUrl, contents);
     }
   }
 

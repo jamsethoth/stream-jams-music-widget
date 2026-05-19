@@ -33,7 +33,6 @@ export function parseOverlayConfig(input = globalThis.location?.href ?? "") {
   const widgetAlignment = readEnum(params, "widgetAlignment", WIDGET_ALIGNMENTS, "bottom-left", errors);
   const idleAfter = readInteger(params, "idleAfter", 30, { min: 1, max: 600 }, errors);
   const backgroundOpacity = readInteger(params, "backgroundOpacity", 84, { min: 0, max: 100 }, errors);
-  const customCss = normalizeCustomCss(params.get("customCss") ?? "", errors);
 
   let host = "";
   let port = 0;
@@ -62,7 +61,6 @@ export function parseOverlayConfig(input = globalThis.location?.href ?? "") {
     theme,
     backgroundOpacity,
     widgetAlignment,
-    customCss,
   };
 }
 
@@ -86,16 +84,4 @@ function readInteger(params, key, fallback, bounds, errors) {
     return fallback;
   }
   return value;
-}
-
-function normalizeCustomCss(value, errors) {
-  const trimmed = value.trim();
-  if (!trimmed) {
-    return "";
-  }
-  if (/^(https?:)?\/\//i.test(trimmed) || trimmed.startsWith("/") || trimmed.includes("..")) {
-    errors.push("customCss must be a same-folder or same-origin relative path.");
-    return "";
-  }
-  return trimmed;
 }

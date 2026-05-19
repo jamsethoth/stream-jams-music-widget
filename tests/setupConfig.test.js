@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { buildOverlayUrl, sanitizeSetupPreferences, setupIntegrations } from "../src/config/setupConfig.js";
+import { escapeAttribute } from "../src/ui/setupView.js";
 
 test("setupIntegrations exposes Pear Desktop as available and Spotify as coming soon", () => {
   assert.deepEqual(
@@ -53,4 +54,25 @@ test("buildOverlayUrl includes the selected widget alignment", () => {
   );
 
   assert.equal(new URL(url).searchParams.get("widgetAlignment"), "center-right");
+});
+
+test("buildOverlayUrl does not include custom CSS path configuration", () => {
+  const url = buildOverlayUrl(
+    {
+      integration: "pear-youtube-music",
+      host: "127.0.0.1",
+      port: 26538,
+      customCss: "custom-theme.css",
+    },
+    "file:///widget/setup.html",
+  );
+
+  assert.equal(new URL(url).searchParams.has("customCss"), false);
+});
+
+test("escapeAttribute keeps saved preferences inert inside setup markup attributes", () => {
+  assert.equal(
+    escapeAttribute(`127.0.0.1" autofocus onfocus="alert(1)`),
+    "127.0.0.1&quot; autofocus onfocus=&quot;alert(1)",
+  );
 });

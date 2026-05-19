@@ -37,7 +37,6 @@ export const setupDefaults = {
   theme: "dark",
   backgroundOpacity: 84,
   widgetAlignment: "bottom-left",
-  customCss: "",
 };
 
 const SAFE_KEYS = Object.keys(setupDefaults);

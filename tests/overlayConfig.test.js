@@ -20,8 +20,16 @@ test("parseOverlayConfig accepts the default Pear YouTube Music URL parameters",
     theme: "dark",
     backgroundOpacity: 84,
     widgetAlignment: "bottom-left",
-    customCss: "",
   });
+});
+
+test("parseOverlayConfig ignores custom CSS URL parameters", () => {
+  const config = parseOverlayConfig(
+    "file:///widget/index.html?integration=mock&customCss=data:text/css,body{display:none}",
+  );
+
+  assert.equal(config.ok, true);
+  assert.equal(Object.hasOwn(config, "customCss"), false);
 });
 
 test("parseOverlayConfig reports missing required integration", () => {

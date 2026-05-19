@@ -3,8 +3,9 @@ import { createWriteStream } from "node:fs";
 import { relative } from "node:path";
 import yazl from "yazl";
 import packageJson from "../package.json" with { type: "json" };
+import { validateReleaseVersion } from "./release-version.js";
 
-const version = process.env.RELEASE_VERSION || packageJson.version;
+const version = validateReleaseVersion(process.env.RELEASE_VERSION || packageJson.version);
 const packageName = `stream-jams-music-widget-v${version}`;
 const distUrl = new URL("../dist/", import.meta.url);
 const packageUrl = new URL(`../dist/${packageName}/`, import.meta.url);
@@ -22,6 +23,7 @@ const runtimeFiles = [
 
 await rm(packageUrl, { recursive: true, force: true });
 await rm(archiveUrl, { force: true });
+await mkdir(distUrl, { recursive: true });
 await mkdir(packageUrl, { recursive: true });
 
 for (const file of runtimeFiles) {

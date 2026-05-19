@@ -27,32 +27,39 @@ jobs:
         with:
           node-version: 24
           cache: npm
+      - name: Validate release version
+        run: node scripts/validate-release-version.js "$RELEASE_VERSION"
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
       - name: Check release tag does not already exist
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
         run: |
-          if git rev-parse "v${{ inputs.version }}" >/dev/null 2>&1; then
-            echo "Tag v${{ inputs.version }} already exists."
+          if git rev-parse "v${RELEASE_VERSION}" >/dev/null 2>&1; then
+            echo "Tag v${RELEASE_VERSION} already exists."
             exit 1
           fi
       - run: npm ci
-      - run: npm run build
-      - run: git diff --exit-code -- browser
       - run: npm run validate
       - name: Package runtime artifact
-        run: npm run package
+        run: npm run verify:package
         env:
           RELEASE_VERSION: ${{ inputs.version }}
       - name: Create and push tag
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag --annotate "v${{ inputs.version }}" --message "Release v${{ inputs.version }}"
-          git push origin "v${{ inputs.version }}"
+          git tag --annotate "v${RELEASE_VERSION}" --message "Release v${RELEASE_VERSION}"
+          git push origin "v${RELEASE_VERSION}"
       - name: Create GitHub release
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+          GH_TOKEN: ${{ github.token }}
         run: >
-          gh release create "v${{ inputs.version }}"
-          "dist/stream-jams-music-widget-v${{ inputs.version }}.zip#Runtime package"
-          --title "Stream Jams Music Widget v${{ inputs.version }}"
+          gh release create "v${RELEASE_VERSION}"
+          "dist/stream-jams-music-widget-v${RELEASE_VERSION}.zip#Runtime package"
+          --title "Stream Jams Music Widget v${RELEASE_VERSION}"
           --generate-notes
           ${{ inputs.prerelease && '--prerelease' || '' }}
-        env:
-          GH_TOKEN: ${{ github.token }}
