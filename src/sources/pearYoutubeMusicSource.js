@@ -127,11 +127,12 @@ export class PearYoutubeMusicSource extends EventEmitter {
       }
       const song = message.payload?.song ?? message.data?.song ?? message.song;
       if (song) {
-        this.#publishPearPayload({
+        const payload = {
           ...song,
           elapsedSeconds: readPosition(message, song.elapsedSeconds),
           isPaused: typeof message.isPlaying === "boolean" ? !message.isPlaying : song.isPaused,
-        });
+        };
+        this.#publishPearPayload(this.#mergeSameTrackMissingFields(payload));
         return;
       }
       this.#publishPartialState(message);
@@ -159,6 +160,18 @@ export class PearYoutubeMusicSource extends EventEmitter {
     this.emit("state", this.#state);
   }
 
+  #mergeSameTrackMissingFields(payload) {
+    if (!this.#state || !isSameTrack(this.#state, payload)) {
+      return payload;
+    }
+
+    return {
+      ...payload,
+      album: payload.album ?? this.#state.album,
+      imageSrc: payload.imageSrc ?? this.#state.artworkUrl,
+    };
+  }
+
   #scheduleWebSocketRetry() {
     if (this.#config.transport !== "auto" || this.#webSocketRetryTimer) {
       return;
@@ -175,4 +188,12 @@ export class PearYoutubeMusicSource extends EventEmitter {
 function readPosition(message, fallback) {
   const value = Number(message.position ?? message.payload?.position ?? message.data?.position);
   return Number.isFinite(value) ? value : fallback;
+}
+
+function isSameTrack(state, payload) {
+  const payloadTrackId = payload.videoId || payload.url || payload.title;
+  if (state.trackId && payloadTrackId) {
+    return state.trackId === payloadTrackId;
+  }
+  return state.title === payload.title && state.artist === payload.artist;
 }

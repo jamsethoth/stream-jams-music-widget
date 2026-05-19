@@ -248,7 +248,7 @@ var StreamJamsOverlay = (() => {
   };
 
   // src/sources/pearYoutubeMusicSource.js
-  var _config, _fetch, _WebSocket, _socket, _pollTimer, _reconnectTimer, _webSocketRetryTimer, _state2, _stopped, _PearYoutubeMusicSource_instances, connectWebSocket_fn, fallbackFromWebSocket_fn, startPolling_fn, pollOnce_fn, requestSong_fn, handleSocketMessage_fn, publishPearPayload_fn, publishPartialState_fn, scheduleWebSocketRetry_fn;
+  var _config, _fetch, _WebSocket, _socket, _pollTimer, _reconnectTimer, _webSocketRetryTimer, _state2, _stopped, _PearYoutubeMusicSource_instances, connectWebSocket_fn, fallbackFromWebSocket_fn, startPolling_fn, pollOnce_fn, requestSong_fn, handleSocketMessage_fn, publishPearPayload_fn, publishPartialState_fn, mergeSameTrackMissingFields_fn, scheduleWebSocketRetry_fn;
   var PearYoutubeMusicSource = class extends EventEmitter {
     constructor(config, dependencies = {}) {
       var _a, _b, _c;
@@ -378,11 +378,12 @@ var StreamJamsOverlay = (() => {
       }
       const song = (_f = (_e = (_c = message.payload) == null ? void 0 : _c.song) != null ? _e : (_d = message.data) == null ? void 0 : _d.song) != null ? _f : message.song;
       if (song) {
-        __privateMethod(this, _PearYoutubeMusicSource_instances, publishPearPayload_fn).call(this, {
+        const payload = {
           ...song,
           elapsedSeconds: readPosition(message, song.elapsedSeconds),
           isPaused: typeof message.isPlaying === "boolean" ? !message.isPlaying : song.isPaused
-        });
+        };
+        __privateMethod(this, _PearYoutubeMusicSource_instances, publishPearPayload_fn).call(this, __privateMethod(this, _PearYoutubeMusicSource_instances, mergeSameTrackMissingFields_fn).call(this, payload));
         return;
       }
       __privateMethod(this, _PearYoutubeMusicSource_instances, publishPartialState_fn).call(this, message);
@@ -406,6 +407,17 @@ var StreamJamsOverlay = (() => {
     }));
     this.emit("state", __privateGet(this, _state2));
   };
+  mergeSameTrackMissingFields_fn = function(payload) {
+    var _a, _b;
+    if (!__privateGet(this, _state2) || !isSameTrack(__privateGet(this, _state2), payload)) {
+      return payload;
+    }
+    return {
+      ...payload,
+      album: (_a = payload.album) != null ? _a : __privateGet(this, _state2).album,
+      imageSrc: (_b = payload.imageSrc) != null ? _b : __privateGet(this, _state2).artworkUrl
+    };
+  };
   scheduleWebSocketRetry_fn = function() {
     if (__privateGet(this, _config).transport !== "auto" || __privateGet(this, _webSocketRetryTimer)) {
       return;
@@ -421,6 +433,13 @@ var StreamJamsOverlay = (() => {
     var _a, _b, _c, _d;
     const value = Number((_d = (_b = message.position) != null ? _b : (_a = message.payload) == null ? void 0 : _a.position) != null ? _d : (_c = message.data) == null ? void 0 : _c.position);
     return Number.isFinite(value) ? value : fallback;
+  }
+  function isSameTrack(state, payload) {
+    const payloadTrackId = payload.videoId || payload.url || payload.title;
+    if (state.trackId && payloadTrackId) {
+      return state.trackId === payloadTrackId;
+    }
+    return state.title === payload.title && state.artist === payload.artist;
   }
 
   // src/sources/sourceRegistry.js

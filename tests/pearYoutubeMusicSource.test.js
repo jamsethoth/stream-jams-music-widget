@@ -95,6 +95,124 @@ test("PearYoutubeMusicSource preserves metadata when websocket sends play-state-
   assert.equal(state.isPlaying, false);
 });
 
+test("PearYoutubeMusicSource preserves existing album when same-track websocket update omits album", () => {
+  const socket = createSocketHarness();
+  const source = new PearYoutubeMusicSource(
+    { integration: "pear-youtube-music", host: "127.0.0.1", port: 26538, transport: "ws" },
+    { WebSocket: socket.WebSocket },
+  );
+
+  source.connect();
+  socket.emit("message", {
+    data: JSON.stringify({
+      type: "PLAYER_INFO",
+      song: {
+        title: "Night Drive",
+        artist: "Aster Pulse",
+        album: "Late Signals",
+        imageSrc: "https://example.test/art.jpg",
+        isPaused: false,
+        songDuration: 211,
+        elapsedSeconds: 12,
+        videoId: "abc123",
+      },
+      isPlaying: true,
+      position: 12,
+    }),
+  });
+  socket.emit("message", {
+    data: JSON.stringify({
+      type: "PLAYER_INFO",
+      song: {
+        title: "Night Drive",
+        artist: "Aster Pulse",
+        album: null,
+        imageSrc: "https://example.test/art.jpg",
+        isPaused: false,
+        songDuration: 211,
+        elapsedSeconds: 18,
+        videoId: "abc123",
+      },
+      isPlaying: true,
+      position: 18,
+    }),
+  });
+
+  const state = source.getCurrentState();
+  assert.equal(state.title, "Night Drive");
+  assert.equal(state.artist, "Aster Pulse");
+  assert.equal(state.album, "Late Signals");
+  assert.equal(state.elapsedSeconds, 18);
+});
+
+test("PearYoutubeMusicSource emits blank album for a new track when Pear provides no album", () => {
+  const socket = createSocketHarness();
+  const source = new PearYoutubeMusicSource(
+    { integration: "pear-youtube-music", host: "127.0.0.1", port: 26538, transport: "ws" },
+    { WebSocket: socket.WebSocket },
+  );
+
+  source.connect();
+  socket.emit("message", {
+    data: JSON.stringify({
+      type: "PLAYER_INFO",
+      song: {
+        title: "Night Drive",
+        artist: "Aster Pulse",
+        album: "Late Signals",
+        isPaused: false,
+        songDuration: 211,
+        elapsedSeconds: 12,
+        videoId: "abc123",
+      },
+    }),
+  });
+  socket.emit("message", {
+    data: JSON.stringify({
+      type: "VIDEO_CHANGED",
+      song: {
+        title: "No Album Track",
+        artist: "Aster Pulse",
+        album: null,
+        isPaused: false,
+        songDuration: 180,
+        elapsedSeconds: 0,
+        videoId: "def456",
+      },
+    }),
+  });
+
+  const state = source.getCurrentState();
+  assert.equal(state.title, "No Album Track");
+  assert.equal(state.album, "");
+});
+
+test("PearYoutubeMusicSource maps Pear album to display details", () => {
+  const socket = createSocketHarness();
+  const source = new PearYoutubeMusicSource(
+    { integration: "pear-youtube-music", host: "127.0.0.1", port: 26538, transport: "ws" },
+    { WebSocket: socket.WebSocket },
+  );
+
+  source.connect();
+  socket.emit("message", {
+    data: JSON.stringify({
+      type: "VIDEO_CHANGED",
+      song: {
+        title: "Night Drive",
+        artist: "Aster Pulse",
+        album: "Late Signals",
+        isPaused: false,
+        songDuration: 211,
+        elapsedSeconds: 0,
+        videoId: "abc123",
+      },
+    }),
+  });
+
+  assert.equal(source.getCurrentState().album, "Late Signals");
+});
+
 test("PearYoutubeMusicSource keeps polling after failed poll attempts", async () => {
   const intervalCallbacks = [];
   globalThis.setInterval = (callback) => {
