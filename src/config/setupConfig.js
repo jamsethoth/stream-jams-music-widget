@@ -1,5 +1,20 @@
 export const SETUP_STORAGE_KEY = "stream-jams.setup";
 
+export const setupIntegrations = [
+  {
+    id: "pear-youtube-music",
+    name: "Pear Desktop",
+    description: "Use Pear Desktop's API Server plugin to read YouTube Music playback from this machine.",
+    status: "available",
+  },
+  {
+    id: "spotify",
+    name: "Spotify",
+    description: "Spotify setup is planned for a future release.",
+    status: "coming-soon",
+  },
+];
+
 export const setupDefaults = {
   integration: "pear-youtube-music",
   host: "127.0.0.1",

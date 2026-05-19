@@ -56,10 +56,75 @@ h1 {
   line-height: 0.96;
 }
 
+h2 {
+  margin: 0;
+  font-size: clamp(28px, 4vw, 44px);
+  line-height: 1;
+}
+
 .setup-intro p:last-child {
   max-inline-size: 640px;
   color: var(--muted);
   font-size: 17px;
+  line-height: 1.55;
+}
+
+.setup-source-menu {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.setup-source-card:hover {
+  border-color: var(--accent);
+  background: var(--panel-strong);
+}
+
+.setup-source-card span {
+  font-size: 20px;
+  font-weight: 850;
+  line-height: 1.1;
+}
+
+.setup-source-card small {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.setup-source-card strong {
+  align-self: end;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 850;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.setup-panel {
+  display: grid;
+  gap: 18px;
+}
+
+.setup-panel[hidden],
+.setup-source-menu[hidden] {
+  display: none;
+}
+
+.setup-panel-heading {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+  margin-block-end: 4px;
+}
+
+.setup-panel-heading p:last-child,
+.setup-placeholder p:last-child {
+  max-inline-size: 640px;
+  color: var(--muted);
+  font-size: 16px;
   line-height: 1.55;
 }
 
@@ -152,6 +217,28 @@ button,
   text-decoration: none;
 }
 
+.setup-source-card {
+  display: grid;
+  min-block-size: 170px;
+  align-content: start;
+  justify-items: start;
+  gap: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+  padding: 22px;
+  text-align: start;
+}
+
+.setup-back {
+  min-block-size: 34px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  padding-inline: 12px;
+}
+
 .setup-preview {
   background: transparent;
   border: 1px solid var(--border);
@@ -187,7 +274,12 @@ output {
 }
 
 @media (max-width: 720px) {
+  .setup-source-menu,
   .setup-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .setup-panel-heading {
     grid-template-columns: 1fr;
   }
 }

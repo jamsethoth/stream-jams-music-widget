@@ -37,6 +37,20 @@ var StreamJamsSetup = (() => {
 
   // src/config/setupConfig.js
   var SETUP_STORAGE_KEY = "stream-jams.setup";
+  var setupIntegrations = [
+    {
+      id: "pear-youtube-music",
+      name: "Pear Desktop",
+      description: "Use Pear Desktop's API Server plugin to read YouTube Music playback from this machine.",
+      status: "available"
+    },
+    {
+      id: "spotify",
+      name: "Spotify",
+      description: "Spotify setup is planned for a future release.",
+      status: "coming-soon"
+    }
+  ];
   var setupDefaults = {
     integration: "pear-youtube-music",
     host: "127.0.0.1",
@@ -358,12 +372,15 @@ var StreamJamsSetup = (() => {
   }
 
   // src/ui/setupView.js
-  var _form, _urlOutput, _status, _onChange, _onTest;
+  var _form, _urlOutput, _status, _sourceMenu, _pearPanel, _spotifyPanel, _onChange, _onTest;
   var SetupView = class {
     constructor(root, initialValues, handlers) {
       __privateAdd(this, _form);
       __privateAdd(this, _urlOutput);
       __privateAdd(this, _status);
+      __privateAdd(this, _sourceMenu);
+      __privateAdd(this, _pearPanel);
+      __privateAdd(this, _spotifyPanel);
       __privateAdd(this, _onChange);
       __privateAdd(this, _onTest);
       __privateSet(this, _onChange, handlers.onChange);
@@ -372,74 +389,103 @@ var StreamJamsSetup = (() => {
       <main class="setup-shell">
         <section class="setup-intro">
           <p class="setup-label">Stream Jams Music Widget</p>
-          <h1>Build an OBS overlay URL</h1>
-          <p>Connect Pear Desktop's YouTube Music API Server plugin, choose the overlay behavior, then use the generated URL as an OBS browser source.</p>
+          <h1>Choose a music source</h1>
+          <p>Select the playback source Stream Jams should read from. Each source can have its own setup requirements.</p>
         </section>
-        <form class="setup-form">
-          <fieldset>
-            <legend>Pear Desktop</legend>
-            <ol class="setup-steps">
-              <li>Open Pear Desktop.</li>
-              <li>Enable the API Server plugin.</li>
-              <li>Set API Server auth strategy to NONE.</li>
-              <li>Confirm the host and port below.</li>
-            </ol>
-            <div class="setup-grid">
-              <label>Host <input name="host" value="${initialValues.host}" autocomplete="off"></label>
-              <label>Port <input name="port" type="number" min="1" max="65535" value="${initialValues.port}"></label>
-              <label>Transport
-                <select name="transport">
-                  ${option("auto", "Auto", initialValues.transport)}
-                  ${option("ws", "WebSocket only", initialValues.transport)}
-                  ${option("poll", "Polling only", initialValues.transport)}
-                </select>
-              </label>
+        <section class="setup-source-menu">
+          ${setupIntegrations.map(sourceCard).join("")}
+        </section>
+        <section class="setup-panel" data-panel="pear" hidden>
+          <div class="setup-panel-heading">
+            <button class="setup-back" type="button" data-action="back">Back</button>
+            <div>
+              <p class="setup-label">Pear Desktop</p>
+              <h2>Build an OBS overlay URL</h2>
+              <p>Connect Pear Desktop's YouTube Music API Server plugin, choose the overlay behavior, then use the generated URL as an OBS browser source.</p>
             </div>
-          </fieldset>
-          <fieldset>
-            <legend>Overlay</legend>
-            <div class="setup-grid">
-              <label>Theme
-                <select name="theme">
-                  ${option("dark", "Dark", initialValues.theme)}
-                  ${option("light", "Light", initialValues.theme)}
-                </select>
-              </label>
-              <label>Initial view
-                <select name="initialView">
-                  ${option("full", "Full", initialValues.initialView)}
-                  ${option("compact", "Compact", initialValues.initialView)}
-                </select>
-              </label>
-              <label>Idle mode
-                <select name="idleMode">
-                  ${option("none", "None", initialValues.idleMode)}
-                  ${option("hide", "Hide", initialValues.idleMode)}
-                  ${option("compact", "Compact", initialValues.idleMode)}
-                </select>
-              </label>
-              <label>Idle after
-                <input name="idleAfter" type="number" min="1" max="600" value="${initialValues.idleAfter}">
-              </label>
-              <label class="setup-wide">Custom CSS
-                <input name="customCss" value="${initialValues.customCss}" placeholder="custom-theme.css">
-              </label>
-            </div>
-          </fieldset>
-          <div class="setup-actions">
-            <button type="button" data-action="test">Test connection</button>
-            <a class="setup-preview" href="#" target="_blank" rel="noreferrer">Preview overlay</a>
           </div>
-        </form>
-        <section class="setup-output">
-          <label>OBS URL <output></output></label>
-          <p class="setup-status" role="status"></p>
+          <form class="setup-form">
+            <input type="hidden" name="integration" value="pear-youtube-music">
+            <fieldset>
+              <legend>Pear Desktop</legend>
+              <ol class="setup-steps">
+                <li>Open Pear Desktop.</li>
+                <li>Enable the API Server plugin.</li>
+                <li>Set API Server auth strategy to NONE.</li>
+                <li>Confirm the host and port below.</li>
+              </ol>
+              <div class="setup-grid">
+                <label>Host <input name="host" value="${initialValues.host}" autocomplete="off"></label>
+                <label>Port <input name="port" type="number" min="1" max="65535" value="${initialValues.port}"></label>
+                <label>Transport
+                  <select name="transport">
+                    ${option("auto", "Auto", initialValues.transport)}
+                    ${option("ws", "WebSocket only", initialValues.transport)}
+                    ${option("poll", "Polling only", initialValues.transport)}
+                  </select>
+                </label>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>Overlay</legend>
+              <div class="setup-grid">
+                <label>Theme
+                  <select name="theme">
+                    ${option("dark", "Dark", initialValues.theme)}
+                    ${option("light", "Light", initialValues.theme)}
+                  </select>
+                </label>
+                <label>Initial view
+                  <select name="initialView">
+                    ${option("full", "Full", initialValues.initialView)}
+                    ${option("compact", "Compact", initialValues.initialView)}
+                  </select>
+                </label>
+                <label>Idle mode
+                  <select name="idleMode">
+                    ${option("none", "None", initialValues.idleMode)}
+                    ${option("hide", "Hide", initialValues.idleMode)}
+                    ${option("compact", "Compact", initialValues.idleMode)}
+                  </select>
+                </label>
+                <label>Idle after
+                  <input name="idleAfter" type="number" min="1" max="600" value="${initialValues.idleAfter}">
+                </label>
+                <label class="setup-wide">Custom CSS
+                  <input name="customCss" value="${initialValues.customCss}" placeholder="custom-theme.css">
+                </label>
+              </div>
+            </fieldset>
+            <div class="setup-actions">
+              <button type="button" data-action="test">Test connection</button>
+              <a class="setup-preview" href="#" target="_blank" rel="noreferrer">Preview overlay</a>
+            </div>
+          </form>
+          <section class="setup-output">
+            <label>OBS URL <output></output></label>
+            <p class="setup-status" role="status"></p>
+          </section>
+        </section>
+        <section class="setup-panel setup-placeholder" data-panel="spotify" hidden>
+          <button class="setup-back" type="button" data-action="back">Back</button>
+          <p class="setup-label">Spotify</p>
+          <h2>Spotify support is coming soon</h2>
+          <p>Spotify integration will be added in a future release. For now, use Pear Desktop for YouTube Music playback.</p>
         </section>
       </main>
     `;
       __privateSet(this, _form, root.querySelector("form"));
       __privateSet(this, _urlOutput, root.querySelector("output"));
       __privateSet(this, _status, root.querySelector(".setup-status"));
+      __privateSet(this, _sourceMenu, root.querySelector(".setup-source-menu"));
+      __privateSet(this, _pearPanel, root.querySelector('[data-panel="pear"]'));
+      __privateSet(this, _spotifyPanel, root.querySelector('[data-panel="spotify"]'));
+      root.querySelectorAll("[data-source]").forEach((button) => {
+        button.addEventListener("click", () => this.showSource(button.dataset.source));
+      });
+      root.querySelectorAll('[data-action="back"]').forEach((button) => {
+        button.addEventListener("click", () => this.showSourceMenu());
+      });
       root.querySelector("[data-action='test']").addEventListener("click", () => __privateGet(this, _onTest).call(this, this.readValues()));
       __privateGet(this, _form).addEventListener("input", () => __privateGet(this, _onChange).call(this, this.readValues()));
     }
@@ -456,12 +502,38 @@ var StreamJamsSetup = (() => {
       __privateGet(this, _status).textContent = message;
       __privateGet(this, _status).dataset.tone = tone;
     }
+    showSource(sourceId) {
+      __privateGet(this, _sourceMenu).hidden = true;
+      __privateGet(this, _pearPanel).hidden = sourceId !== "pear-youtube-music";
+      __privateGet(this, _spotifyPanel).hidden = sourceId !== "spotify";
+      if (sourceId === "pear-youtube-music") {
+        this.renderUrl(this.readValues());
+      }
+    }
+    showSourceMenu() {
+      __privateGet(this, _sourceMenu).hidden = false;
+      __privateGet(this, _pearPanel).hidden = true;
+      __privateGet(this, _spotifyPanel).hidden = true;
+    }
   };
   _form = new WeakMap();
   _urlOutput = new WeakMap();
   _status = new WeakMap();
+  _sourceMenu = new WeakMap();
+  _pearPanel = new WeakMap();
+  _spotifyPanel = new WeakMap();
   _onChange = new WeakMap();
   _onTest = new WeakMap();
+  function sourceCard(integration) {
+    const statusText = integration.status === "coming-soon" ? "Coming soon" : "Available";
+    return `
+    <button class="setup-source-card" type="button" data-source="${integration.id}">
+      <span>${integration.name}</span>
+      <small>${integration.description}</small>
+      <strong>${statusText}</strong>
+    </button>
+  `;
+  }
   function option(value, label, selected) {
     const selectedAttr = value === selected ? " selected" : "";
     return `<option value="${value}"${selectedAttr}>${label}</option>`;
