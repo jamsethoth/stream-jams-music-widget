@@ -495,7 +495,7 @@ var StreamJamsOverlay = (() => {
             <div class="sj-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
               <span class="sj-progress-fill"></span>
             </div>
-            <span class="sj-time">0:00</span>
+            <span class="sj-time">0:00 / 0:00</span>
           </div>
         </div>
       </section>
@@ -536,7 +536,7 @@ var StreamJamsOverlay = (() => {
       setScrollingText(__privateGet(this, _detailsEl), formatTrackDetails(state));
       __privateGet(this, _progressEl).setAttribute("aria-valuenow", String(Math.round(progress.percent)));
       __privateGet(this, _progressEl).querySelector(".sj-progress-fill").style.inlineSize = `${progress.percent}%`;
-      __privateGet(this, _timeEl).textContent = formatTime(progress.elapsedSeconds);
+      __privateGet(this, _timeEl).textContent = `${formatTime(progress.elapsedSeconds)} / ${formatTime(progress.durationSeconds)}`;
       if (state.artworkUrl) {
         __privateGet(this, _artEl).style.backgroundImage = `url("${state.artworkUrl.replaceAll('"', "%22")}")`;
         __privateGet(this, _artEl).classList.add("has-art");

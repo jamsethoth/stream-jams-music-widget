@@ -20,7 +20,7 @@ export class OverlayView {
             <div class="sj-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
               <span class="sj-progress-fill"></span>
             </div>
-            <span class="sj-time">0:00</span>
+            <span class="sj-time">0:00 / 0:00</span>
           </div>
         </div>
       </section>
@@ -66,7 +66,7 @@ export class OverlayView {
     setScrollingText(this.#detailsEl, formatTrackDetails(state));
     this.#progressEl.setAttribute("aria-valuenow", String(Math.round(progress.percent)));
     this.#progressEl.querySelector(".sj-progress-fill").style.inlineSize = `${progress.percent}%`;
-    this.#timeEl.textContent = formatTime(progress.elapsedSeconds);
+    this.#timeEl.textContent = `${formatTime(progress.elapsedSeconds)} / ${formatTime(progress.durationSeconds)}`;
 
     if (state.artworkUrl) {
       this.#artEl.style.backgroundImage = `url("${state.artworkUrl.replaceAll('"', "%22")}")`;

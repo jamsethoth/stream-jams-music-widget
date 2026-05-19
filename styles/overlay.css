@@ -164,7 +164,7 @@ body {
 
 .sj-progress-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 38px;
+  grid-template-columns: minmax(0, 1fr) 76px;
   align-items: center;
   align-self: end;
   gap: 10px;
