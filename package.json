@@ -1,0 +1,20 @@
+{
+  "name": "stream-jams-music-widget",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build-browser-bundles.js",
+    "package": "npm run build && node scripts/package-runtime.js",
+    "test": "node --test",
+    "validate": "node --test && npm run build && node scripts/validate-static-pages.js",
+    "verify:package": "npm run package && node scripts/validate-runtime-package.js"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "yazl": "^3.3.1"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
