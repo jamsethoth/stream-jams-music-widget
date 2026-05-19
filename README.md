@@ -1,60 +1,52 @@
 # Stream Jams Music Widget
 
-Stream Jams Music Widget is a small static HTML overlay intended for use as a browser source in OBS Studio. Its goal is to give stream viewers a clean, minimal view of the music currently playing on the user's local system without taking over the scene.
+Stream Jams Music Widget is a small static HTML overlay for OBS Studio. It shows the current track playing on the streamer's local system in a compact, readable now-playing widget.
 
-The app is planned as a compact now-playing display that can sit in a corner, along an edge, or within a small reserved area of a stream layout. It should be readable at streaming resolutions, visually quiet enough not to distract from the main content, and flexible enough to match different scene styles.
+The widget is designed to sit in a corner, along an edge, or inside a reserved scene area without taking over the stream layout.
 
-## Intended Display
+## Current Features
 
-The overlay should show the essential context for the current track:
+- OBS-friendly browser-source overlay.
+- Guided setup page for generating an overlay URL.
+- Pear Desktop YouTube Music integration.
+- Mock integration for local styling and smoke testing.
+- Full and compact overlay views.
+- Dark and light themes.
+- Playback progress display.
+- Optional idle behavior to hide or collapse the widget.
+- Runtime package generation for local hosting or direct file use.
 
-- Song name
-- Artist name
-- Album name
-- Album art
-- Playback progress through the song
+## Runtime Files
 
-The playback progress should be represented with a playhead or progress bar so viewers can tell roughly how far along the current song is.
+The runtime widget is made of:
 
-## Integration Direction
+- `index.html`: the OBS overlay page.
+- `setup.html`: the setup page for generating overlay URLs.
+- `browser/`: generated classic browser scripts used by the HTML entrypoints.
+- `styles/`: overlay and setup styling.
 
-Stream Jams Music Widget is intended to eventually support integrations with local music playback sources. Spotify and YouTube Music are the initial targets, but the exact integration strategy is intentionally left undecided for now.
+The HTML files intentionally load generated classic scripts from `browser/` so the widget can be opened directly from `file:///` in OBS or a browser without ES module CORS errors.
 
-Possible future directions may include:
+## Pear Desktop Setup
 
-- Reading metadata from Spotify
-- Reading metadata from YouTube Music
-- Listening to a small local companion process
-- Accepting track metadata from a configurable local endpoint
-- Falling back to manually supplied or mocked track data during development
+The first supported real integration is YouTube Music through Pear Desktop.
 
-The first implementation plan should decide how much of this surface belongs in the static overlay itself and what should remain outside the browser source.
+In Pear Desktop:
 
-## Design Goals
+1. Enable the API Server plugin.
+2. Set the API Server auth strategy to `NONE`.
+3. Confirm the API host and port.
+4. Open `setup.html`.
+5. Generate the OBS overlay URL.
+6. Add that URL as an OBS browser source.
 
-- Static HTML-first: easy to load directly or serve locally for OBS.
-- OBS-friendly: sized and styled for use as a browser source.
-- Minimal: compact layout, restrained visual treatment, and no unnecessary controls.
-- Legible: clear hierarchy for song, artist, album, and playback state.
-- Integration-ready: structured so playback data can later come from Spotify, YouTube Music, or another local source.
-- Stream-safe: no secrets, credentials, or private playback tokens embedded in the static page.
-
-## First Iteration
-
-This repository now contains a static first pass of the widget:
-
-- `setup.html` builds an OBS-ready overlay URL.
-- `index.html` renders the overlay.
-- `browser/` contains generated file-safe classic browser scripts used by the HTML entrypoints.
-- `src/` contains testable ES modules for config parsing, source integration, state normalization, progress interpolation, and rendering.
-- `tests/` covers the pure behavior that should stay stable as integrations are added.
-- `.github/workflows/validate.yml` is ready to run validation in GitHub Actions.
-
-The planned default Pear Desktop URL is:
+The default Pear Desktop overlay URL is:
 
 ```text
 index.html?integration=pear-youtube-music&host=127.0.0.1&port=26538&transport=auto&initialView=full&idleMode=none&idleAfter=30&theme=dark
 ```
+
+## Mock Mode
 
 Mock mode is available for styling and smoke testing without Pear Desktop:
 
@@ -62,24 +54,87 @@ Mock mode is available for styling and smoke testing without Pear Desktop:
 index.html?integration=mock&theme=dark&initialView=full&idleMode=compact&idleAfter=30
 ```
 
+## Project Structure
+
+- `src/`: source of truth for application logic, written as testable ES modules.
+- `browser/`: generated browser bundles built from `src/`.
+- `styles/`: CSS for the overlay and setup page.
+- `tests/`: Node test coverage for config parsing, state normalization, progress interpolation, and Pear event handling.
+- `scripts/`: build, validation, and runtime packaging scripts.
+- `.github/workflows/validate.yml`: pull request and main-branch validation.
+- `.github/workflows/release.yml`: manual release workflow that creates a runtime zip.
+
 ## Development
 
-The project uses ES modules in `src/` as the source of truth.
-The checked-in HTML entrypoints intentionally load generated classic scripts from `browser/` so they can be opened directly from `file:///` in OBS or a browser without ES module CORS errors.
+Install dependencies:
 
 ```bash
 npm install
+```
+
+Build generated browser bundles:
+
+```bash
 npm run build
+```
+
+Run tests:
+
+```bash
 npm test
+```
+
+Run the full validation suite:
+
+```bash
 npm run validate
+```
+
+Create a local runtime package:
+
+```bash
 npm run package
 ```
 
-`npm run package` creates a local runtime zip in `dist/` containing only the files needed to run or host the widget.
+The package command creates:
 
-In this local workspace, Node is not available inside WSL 1, so the same test files can also be checked with Deno:
-
-```bash
-deno test --allow-read --no-check
-deno run --allow-read scripts/validate-static-pages.js
+```text
+dist/stream-jams-music-widget-v<version>.zip
 ```
+
+That zip contains only the files needed to run or host the widget:
+
+- `index.html`
+- `setup.html`
+- `browser/`
+- `styles/`
+- `README.md`
+- `RELEASE.txt`
+
+## Releases
+
+Releases are created manually through the GitHub Actions `Release` workflow.
+
+The release workflow:
+
+1. Accepts a semantic version input.
+2. Installs dependencies.
+3. Builds `browser/` from `src/`.
+4. Validates tests and static files.
+5. Creates a runtime-only zip.
+6. Creates and pushes a `v<version>` tag.
+7. Creates a GitHub Release with generated release notes.
+8. Attaches the runtime zip as a downloadable release asset.
+
+## Integration Direction
+
+The overlay UI depends on a normalized music-source interface. Pear Desktop behavior is handled inside the Pear source adapter so future integrations can map their own APIs independently.
+
+Potential future integrations include:
+
+- Spotify metadata.
+- A configurable local metadata endpoint.
+- A small local companion process.
+- Additional local music players.
+
+The static overlay should remain stream-safe: no secrets, credentials, OAuth tokens, or private playback tokens should be embedded in the browser source.
