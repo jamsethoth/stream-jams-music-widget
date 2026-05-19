@@ -1,5 +1,5 @@
 import { EventEmitter } from "./musicSource.js";
-import { normalizePearSong } from "../state/playerState.js";
+import { normalizePearSong, normalizePlayerState } from "../state/playerState.js";
 
 export class PearYoutubeMusicSource extends EventEmitter {
   #config;
@@ -115,8 +115,16 @@ export class PearYoutubeMusicSource extends EventEmitter {
       if (!["PLAYER_INFO", "VIDEO_CHANGED", "PLAYER_STATE_CHANGED", "POSITION_CHANGED"].includes(eventType)) {
         return;
       }
-      const payload = message.payload ?? message.data ?? message.song ?? message;
-      this.#publishPearPayload(payload);
+      const song = message.payload?.song ?? message.data?.song ?? message.song;
+      if (song) {
+        this.#publishPearPayload({
+          ...song,
+          elapsedSeconds: readPosition(message, song.elapsedSeconds),
+          isPaused: typeof message.isPlaying === "boolean" ? !message.isPlaying : song.isPaused,
+        });
+        return;
+      }
+      this.#publishPartialState(message);
     } catch {
       this.emit("connection", { state: "disconnected", message: "Pear sent an unreadable message" });
     }
@@ -126,4 +134,23 @@ export class PearYoutubeMusicSource extends EventEmitter {
     this.#state = normalizePearSong(payload);
     this.emit("state", this.#state);
   }
+
+  #publishPartialState(message) {
+    if (!this.#state) {
+      return;
+    }
+
+    this.#state = normalizePlayerState({
+      ...this.#state,
+      elapsedSeconds: readPosition(message, this.#state.elapsedSeconds),
+      isPlaying: typeof message.isPlaying === "boolean" ? message.isPlaying : this.#state.isPlaying,
+      updatedAt: Date.now(),
+    });
+    this.emit("state", this.#state);
+  }
+}
+
+function readPosition(message, fallback) {
+  const value = Number(message.position ?? message.payload?.position ?? message.data?.position);
+  return Number.isFinite(value) ? value : fallback;
 }

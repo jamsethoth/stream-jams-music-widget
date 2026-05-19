@@ -163,7 +163,7 @@ var StreamJamsSetup = (() => {
   }
 
   // src/sources/pearYoutubeMusicSource.js
-  var _config, _fetch, _WebSocket, _socket, _pollTimer, _reconnectTimer, _state, _stopped, _PearYoutubeMusicSource_instances, connectWebSocket_fn, fallbackFromWebSocket_fn, startPolling_fn, pollOnce_fn, requestSong_fn, handleSocketMessage_fn, publishPearPayload_fn;
+  var _config, _fetch, _WebSocket, _socket, _pollTimer, _reconnectTimer, _state, _stopped, _PearYoutubeMusicSource_instances, connectWebSocket_fn, fallbackFromWebSocket_fn, startPolling_fn, pollOnce_fn, requestSong_fn, handleSocketMessage_fn, publishPearPayload_fn, publishPartialState_fn;
   var PearYoutubeMusicSource = class extends EventEmitter {
     constructor(config, dependencies = {}) {
       var _a, _b, _c;
@@ -273,15 +273,23 @@ var StreamJamsSetup = (() => {
     return __privateGet(this, _fetch).call(this, `http://${__privateGet(this, _config).host}:${__privateGet(this, _config).port}/api/v1/song`);
   };
   handleSocketMessage_fn = function(rawMessage) {
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c, _d, _e, _f;
     try {
       const message = JSON.parse(rawMessage);
       const eventType = (_b = (_a = message.type) != null ? _a : message.event) != null ? _b : message.eventType;
       if (!["PLAYER_INFO", "VIDEO_CHANGED", "PLAYER_STATE_CHANGED", "POSITION_CHANGED"].includes(eventType)) {
         return;
       }
-      const payload = (_e = (_d = (_c = message.payload) != null ? _c : message.data) != null ? _d : message.song) != null ? _e : message;
-      __privateMethod(this, _PearYoutubeMusicSource_instances, publishPearPayload_fn).call(this, payload);
+      const song = (_f = (_e = (_c = message.payload) == null ? void 0 : _c.song) != null ? _e : (_d = message.data) == null ? void 0 : _d.song) != null ? _f : message.song;
+      if (song) {
+        __privateMethod(this, _PearYoutubeMusicSource_instances, publishPearPayload_fn).call(this, {
+          ...song,
+          elapsedSeconds: readPosition(message, song.elapsedSeconds),
+          isPaused: typeof message.isPlaying === "boolean" ? !message.isPlaying : song.isPaused
+        });
+        return;
+      }
+      __privateMethod(this, _PearYoutubeMusicSource_instances, publishPartialState_fn).call(this, message);
     } catch (e) {
       this.emit("connection", { state: "disconnected", message: "Pear sent an unreadable message" });
     }
@@ -290,6 +298,23 @@ var StreamJamsSetup = (() => {
     __privateSet(this, _state, normalizePearSong(payload));
     this.emit("state", __privateGet(this, _state));
   };
+  publishPartialState_fn = function(message) {
+    if (!__privateGet(this, _state)) {
+      return;
+    }
+    __privateSet(this, _state, normalizePlayerState({
+      ...__privateGet(this, _state),
+      elapsedSeconds: readPosition(message, __privateGet(this, _state).elapsedSeconds),
+      isPlaying: typeof message.isPlaying === "boolean" ? message.isPlaying : __privateGet(this, _state).isPlaying,
+      updatedAt: Date.now()
+    }));
+    this.emit("state", __privateGet(this, _state));
+  };
+  function readPosition(message, fallback) {
+    var _a, _b, _c, _d;
+    const value = Number((_d = (_b = message.position) != null ? _b : (_a = message.payload) == null ? void 0 : _a.position) != null ? _d : (_c = message.data) == null ? void 0 : _c.position);
+    return Number.isFinite(value) ? value : fallback;
+  }
 
   // src/ui/setupView.js
   var _form, _urlOutput, _status, _onChange, _onTest;
