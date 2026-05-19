@@ -19,6 +19,7 @@ test("parseOverlayConfig accepts the default Pear YouTube Music URL parameters",
     idleAfter: 30,
     theme: "dark",
     backgroundOpacity: 84,
+    widgetAlignment: "bottom-left",
     customCss: "",
   });
 });
@@ -59,4 +60,22 @@ test("parseOverlayConfig rejects background opacity outside 0 to 100", () => {
 
   assert.equal(config.ok, false);
   assert.match(config.errors.join("\n"), /backgroundOpacity/);
+});
+
+test("parseOverlayConfig accepts supported widget alignment values", () => {
+  const config = parseOverlayConfig(
+    "https://example.test/index.html?integration=mock&theme=dark&widgetAlignment=top-center",
+  );
+
+  assert.equal(config.ok, true);
+  assert.equal(config.widgetAlignment, "top-center");
+});
+
+test("parseOverlayConfig rejects unsupported widget alignment values", () => {
+  const config = parseOverlayConfig(
+    "https://example.test/index.html?integration=mock&theme=dark&widgetAlignment=center",
+  );
+
+  assert.equal(config.ok, false);
+  assert.match(config.errors.join("\n"), /widgetAlignment/);
 });

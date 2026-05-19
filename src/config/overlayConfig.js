@@ -3,6 +3,16 @@ const TRANSPORTS = new Set(["auto", "ws", "poll"]);
 const VIEWS = new Set(["full", "compact"]);
 const IDLE_MODES = new Set(["none", "hide", "compact"]);
 const THEMES = new Set(["dark", "light"]);
+const WIDGET_ALIGNMENTS = new Set([
+  "top-left",
+  "top-center",
+  "top-right",
+  "center-left",
+  "center-right",
+  "bottom-left",
+  "bottom-center",
+  "bottom-right",
+]);
 
 export function parseOverlayConfig(input = globalThis.location?.href ?? "") {
   const url = new URL(input, "http://localhost/index.html");
@@ -20,6 +30,7 @@ export function parseOverlayConfig(input = globalThis.location?.href ?? "") {
   const initialView = readEnum(params, "initialView", VIEWS, "full", errors);
   const idleMode = readEnum(params, "idleMode", IDLE_MODES, "none", errors);
   const theme = readEnum(params, "theme", THEMES, "dark", errors);
+  const widgetAlignment = readEnum(params, "widgetAlignment", WIDGET_ALIGNMENTS, "bottom-left", errors);
   const idleAfter = readInteger(params, "idleAfter", 30, { min: 1, max: 600 }, errors);
   const backgroundOpacity = readInteger(params, "backgroundOpacity", 84, { min: 0, max: 100 }, errors);
   const customCss = normalizeCustomCss(params.get("customCss") ?? "", errors);
@@ -50,6 +61,7 @@ export function parseOverlayConfig(input = globalThis.location?.href ?? "") {
     idleAfter,
     theme,
     backgroundOpacity,
+    widgetAlignment,
     customCss,
   };
 }

@@ -1,4 +1,4 @@
-import { buildOverlayUrl, setupIntegrations } from "../config/setupConfig.js";
+import { buildOverlayUrl, setupIntegrations, widgetAlignments } from "../config/setupConfig.js";
 
 export class SetupView {
   #form;
@@ -79,6 +79,11 @@ export class SetupView {
                 </label>
                 <label>Idle after
                   <input name="idleAfter" type="number" min="1" max="600" value="${initialValues.idleAfter}">
+                </label>
+                <label>Alignment
+                  <select name="widgetAlignment">
+                    ${widgetAlignments.map((alignment) => option(alignment.value, alignment.label, initialValues.widgetAlignment)).join("")}
+                  </select>
                 </label>
                 <label class="setup-wide setup-range-label">
                   Background opacity <output data-background-opacity>${initialValues.backgroundOpacity}%</output>

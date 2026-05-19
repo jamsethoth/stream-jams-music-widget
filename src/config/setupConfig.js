@@ -15,6 +15,17 @@ export const setupIntegrations = [
   },
 ];
 
+export const widgetAlignments = [
+  { value: "top-left", label: "Top left" },
+  { value: "top-center", label: "Top center" },
+  { value: "top-right", label: "Top right" },
+  { value: "center-left", label: "Center left" },
+  { value: "center-right", label: "Center right" },
+  { value: "bottom-left", label: "Bottom left" },
+  { value: "bottom-center", label: "Bottom center" },
+  { value: "bottom-right", label: "Bottom right" },
+];
+
 export const setupDefaults = {
   integration: "pear-youtube-music",
   host: "127.0.0.1",
@@ -25,10 +36,12 @@ export const setupDefaults = {
   idleAfter: 30,
   theme: "dark",
   backgroundOpacity: 84,
+  widgetAlignment: "bottom-left",
   customCss: "",
 };
 
 const SAFE_KEYS = Object.keys(setupDefaults);
+const WIDGET_ALIGNMENT_VALUES = new Set(widgetAlignments.map((alignment) => alignment.value));
 
 export function loadSetupPreferences(storage = globalThis.localStorage) {
   if (!storage) {
@@ -59,6 +72,9 @@ export function sanitizeSetupPreferences(values) {
   next.port = clampInteger(next.port, setupDefaults.port, 1, 65535);
   next.idleAfter = clampInteger(next.idleAfter, setupDefaults.idleAfter, 1, 600);
   next.backgroundOpacity = clampInteger(next.backgroundOpacity, setupDefaults.backgroundOpacity, 0, 100);
+  next.widgetAlignment = WIDGET_ALIGNMENT_VALUES.has(next.widgetAlignment)
+    ? next.widgetAlignment
+    : setupDefaults.widgetAlignment;
   return next;
 }
 

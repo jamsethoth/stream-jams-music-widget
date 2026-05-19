@@ -11,8 +11,8 @@
   --sj-progress-bg: rgba(255, 255, 255, 0.18);
   --sj-border: rgba(255, 255, 255, 0.14);
   --sj-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
-  --sj-art-size: 96px;
-  --sj-widget-width: 452px;
+  --sj-art-size: 144px;
+  --sj-widget-width: 640px;
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
@@ -53,12 +53,44 @@ body {
 #app {
   display: grid;
   inline-size: 100%;
-  padding: 18px;
-  place-items: center;
+  padding: 32px;
+  place-items: end start;
   transition:
     opacity 220ms ease,
     transform 220ms ease,
     visibility 220ms ease;
+}
+
+#app[data-align="top-left"] {
+  place-items: start start;
+}
+
+#app[data-align="top-center"] {
+  place-items: start center;
+}
+
+#app[data-align="top-right"] {
+  place-items: start end;
+}
+
+#app[data-align="center-left"] {
+  place-items: center start;
+}
+
+#app[data-align="center-right"] {
+  place-items: center end;
+}
+
+#app[data-align="bottom-left"] {
+  place-items: end start;
+}
+
+#app[data-align="bottom-center"] {
+  place-items: end center;
+}
+
+#app[data-align="bottom-right"] {
+  place-items: end end;
 }
 
 #app[data-view="hidden"] {
@@ -70,10 +102,10 @@ body {
 .sj-widget {
   display: grid;
   grid-template-columns: var(--sj-art-size) minmax(0, 1fr);
-  gap: 16px;
+  gap: 22px;
   inline-size: min(var(--sj-widget-width), calc(100vw - 24px));
-  block-size: 126px;
-  padding: 14px;
+  block-size: 178px;
+  padding: 16px;
   border: 1px solid var(--sj-border);
   border-radius: 8px;
   background: linear-gradient(
@@ -131,7 +163,7 @@ body {
 .sj-title {
   align-self: start;
   padding-block-start: 2px;
-  font-size: 22px;
+  font-size: 30px;
   font-weight: 800;
   line-height: 1.15;
 }
@@ -139,7 +171,7 @@ body {
 .sj-details {
   align-self: center;
   color: var(--sj-muted);
-  font-size: 14px;
+  font-size: 17px;
   font-weight: 650;
   line-height: 1.3;
 }
@@ -171,19 +203,19 @@ body {
 
 .sj-progress-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 76px;
+  grid-template-columns: minmax(0, 1fr) 98px;
   align-items: center;
   align-self: end;
   gap: 10px;
   padding-block-end: 3px;
   color: var(--sj-subtle);
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.2;
 }
 
 .sj-progress {
   overflow: hidden;
-  block-size: 5px;
+  block-size: 7px;
   border-radius: 999px;
   background: var(--sj-progress-bg);
 }
@@ -215,9 +247,9 @@ body {
 
 #app[data-view="compact"] .sj-widget {
   grid-template-columns: minmax(0, 1fr);
-  inline-size: min(360px, calc(100vw - 24px));
-  block-size: 94px;
-  padding: 12px 14px;
+  inline-size: min(480px, calc(100vw - 24px));
+  block-size: 118px;
+  padding: 14px 18px;
 }
 
 #app[data-view="compact"] .sj-art {
@@ -225,15 +257,15 @@ body {
 }
 
 #app[data-view="compact"] .sj-copy {
-  block-size: 70px;
+  block-size: 90px;
 }
 
 #app[data-view="compact"] .sj-title {
-  font-size: 17px;
+  font-size: 22px;
 }
 
 #app[data-view="compact"] .sj-details {
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .sj-error {

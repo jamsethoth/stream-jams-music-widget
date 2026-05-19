@@ -41,6 +41,10 @@ export class OverlayView {
     document.documentElement.style.setProperty("--sj-bg-opacity", String(opacity));
   }
 
+  setAlignment(alignment) {
+    this.#root.dataset.align = alignment;
+  }
+
   setView(view) {
     this.#root.dataset.view = view;
   }

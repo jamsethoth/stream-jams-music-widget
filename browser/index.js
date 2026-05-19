@@ -41,6 +41,16 @@ var StreamJamsOverlay = (() => {
   var VIEWS = /* @__PURE__ */ new Set(["full", "compact"]);
   var IDLE_MODES = /* @__PURE__ */ new Set(["none", "hide", "compact"]);
   var THEMES = /* @__PURE__ */ new Set(["dark", "light"]);
+  var WIDGET_ALIGNMENTS = /* @__PURE__ */ new Set([
+    "top-left",
+    "top-center",
+    "top-right",
+    "center-left",
+    "center-right",
+    "bottom-left",
+    "bottom-center",
+    "bottom-right"
+  ]);
   function parseOverlayConfig(input = ((_b) => (_b = ((_a) => (_a = globalThis.location) == null ? void 0 : _a.href)()) != null ? _b : "")()) {
     var _a2, _b2;
     const url = new URL(input, "http://localhost/index.html");
@@ -56,6 +66,7 @@ var StreamJamsOverlay = (() => {
     const initialView = readEnum(params, "initialView", VIEWS, "full", errors);
     const idleMode = readEnum(params, "idleMode", IDLE_MODES, "none", errors);
     const theme = readEnum(params, "theme", THEMES, "dark", errors);
+    const widgetAlignment = readEnum(params, "widgetAlignment", WIDGET_ALIGNMENTS, "bottom-left", errors);
     const idleAfter = readInteger(params, "idleAfter", 30, { min: 1, max: 600 }, errors);
     const backgroundOpacity = readInteger(params, "backgroundOpacity", 84, { min: 0, max: 100 }, errors);
     const customCss = normalizeCustomCss((_b2 = params.get("customCss")) != null ? _b2 : "", errors);
@@ -82,6 +93,7 @@ var StreamJamsOverlay = (() => {
       idleAfter,
       theme,
       backgroundOpacity,
+      widgetAlignment,
       customCss
     };
   }
@@ -515,6 +527,9 @@ var StreamJamsOverlay = (() => {
       const opacity = Math.min(100, Math.max(0, Number(opacityPercent))) / 100;
       document.documentElement.style.setProperty("--sj-bg-opacity", String(opacity));
     }
+    setAlignment(alignment) {
+      __privateGet(this, _root).dataset.align = alignment;
+    }
     setView(view) {
       __privateGet(this, _root).dataset.view = view;
     }
@@ -601,6 +616,7 @@ var StreamJamsOverlay = (() => {
     }
     view.setTheme(config.theme);
     view.setBackgroundOpacity(config.backgroundOpacity);
+    view.setAlignment(config.widgetAlignment);
     view.setView(config.initialView);
     loadCustomCss(config.customCss);
     const source = createMusicSource(config);

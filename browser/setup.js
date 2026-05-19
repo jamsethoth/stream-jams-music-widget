@@ -51,6 +51,16 @@ var StreamJamsSetup = (() => {
       status: "coming-soon"
     }
   ];
+  var widgetAlignments = [
+    { value: "top-left", label: "Top left" },
+    { value: "top-center", label: "Top center" },
+    { value: "top-right", label: "Top right" },
+    { value: "center-left", label: "Center left" },
+    { value: "center-right", label: "Center right" },
+    { value: "bottom-left", label: "Bottom left" },
+    { value: "bottom-center", label: "Bottom center" },
+    { value: "bottom-right", label: "Bottom right" }
+  ];
   var setupDefaults = {
     integration: "pear-youtube-music",
     host: "127.0.0.1",
@@ -61,9 +71,11 @@ var StreamJamsSetup = (() => {
     idleAfter: 30,
     theme: "dark",
     backgroundOpacity: 84,
+    widgetAlignment: "bottom-left",
     customCss: ""
   };
   var SAFE_KEYS = Object.keys(setupDefaults);
+  var WIDGET_ALIGNMENT_VALUES = new Set(widgetAlignments.map((alignment) => alignment.value));
   function loadSetupPreferences(storage = globalThis.localStorage) {
     if (!storage) {
       return { ...setupDefaults };
@@ -91,6 +103,7 @@ var StreamJamsSetup = (() => {
     next.port = clampInteger(next.port, setupDefaults.port, 1, 65535);
     next.idleAfter = clampInteger(next.idleAfter, setupDefaults.idleAfter, 1, 600);
     next.backgroundOpacity = clampInteger(next.backgroundOpacity, setupDefaults.backgroundOpacity, 0, 100);
+    next.widgetAlignment = WIDGET_ALIGNMENT_VALUES.has(next.widgetAlignment) ? next.widgetAlignment : setupDefaults.widgetAlignment;
     return next;
   }
   function buildOverlayUrl(values, baseHref = ((_b) => (_b = ((_a) => (_a = globalThis.location) == null ? void 0 : _a.href)()) != null ? _b : "")()) {
@@ -454,6 +467,11 @@ var StreamJamsSetup = (() => {
                 </label>
                 <label>Idle after
                   <input name="idleAfter" type="number" min="1" max="600" value="${initialValues.idleAfter}">
+                </label>
+                <label>Alignment
+                  <select name="widgetAlignment">
+                    ${widgetAlignments.map((alignment) => option(alignment.value, alignment.label, initialValues.widgetAlignment)).join("")}
+                  </select>
                 </label>
                 <label class="setup-wide setup-range-label">
                   Background opacity <output data-background-opacity>${initialValues.backgroundOpacity}%</output>

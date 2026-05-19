@@ -35,3 +35,22 @@ test("buildOverlayUrl includes the selected background opacity", () => {
 
   assert.equal(new URL(url).searchParams.get("backgroundOpacity"), "55");
 });
+
+test("sanitizeSetupPreferences keeps only supported widget alignment values", () => {
+  assert.equal(sanitizeSetupPreferences({ widgetAlignment: "top-right" }).widgetAlignment, "top-right");
+  assert.equal(sanitizeSetupPreferences({ widgetAlignment: "center" }).widgetAlignment, "bottom-left");
+});
+
+test("buildOverlayUrl includes the selected widget alignment", () => {
+  const url = buildOverlayUrl(
+    {
+      integration: "pear-youtube-music",
+      host: "127.0.0.1",
+      port: 26538,
+      widgetAlignment: "center-right",
+    },
+    "file:///widget/setup.html",
+  );
+
+  assert.equal(new URL(url).searchParams.get("widgetAlignment"), "center-right");
+});

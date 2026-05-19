@@ -13,6 +13,7 @@ export function startOverlayApp(root = document.querySelector("#app"), href = gl
 
   view.setTheme(config.theme);
   view.setBackgroundOpacity(config.backgroundOpacity);
+  view.setAlignment(config.widgetAlignment);
   view.setView(config.initialView);
   loadCustomCss(config.customCss);
 
