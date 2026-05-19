@@ -7,7 +7,6 @@ export class OverlayView {
   #titleEl;
   #artistEl;
   #albumEl;
-  #sourceEl;
   #progressEl;
   #timeEl;
 
@@ -17,7 +16,6 @@ export class OverlayView {
       <section class="sj-widget" aria-live="polite">
         <div class="sj-art" aria-hidden="true"><span>SJ</span></div>
         <div class="sj-copy">
-          <div class="sj-source"></div>
           <h1 class="sj-title">Connecting...</h1>
           <p class="sj-artist"></p>
           <p class="sj-album"></p>
@@ -25,18 +23,15 @@ export class OverlayView {
             <span class="sj-progress-fill"></span>
           </div>
           <div class="sj-meta">
-            <span class="sj-status">Starting overlay</span>
             <span class="sj-time">0:00 / 0:00</span>
           </div>
         </div>
       </section>
     `;
-    this.#statusEl = this.#root.querySelector(".sj-status");
     this.#artEl = this.#root.querySelector(".sj-art");
     this.#titleEl = this.#root.querySelector(".sj-title");
     this.#artistEl = this.#root.querySelector(".sj-artist");
     this.#albumEl = this.#root.querySelector(".sj-album");
-    this.#sourceEl = this.#root.querySelector(".sj-source");
     this.#progressEl = this.#root.querySelector(".sj-progress");
     this.#timeEl = this.#root.querySelector(".sj-time");
   }
@@ -62,7 +57,6 @@ export class OverlayView {
   }
 
   renderConnection(connection) {
-    this.#statusEl.textContent = connection.message;
     this.#root.dataset.connection = connection.state;
     if (connection.state === "waiting") {
       this.#titleEl.textContent = "Waiting for music";
@@ -76,7 +70,6 @@ export class OverlayView {
     this.#titleEl.textContent = state.title;
     this.#artistEl.textContent = state.artist;
     this.#albumEl.textContent = state.album;
-    this.#sourceEl.textContent = state.sourceName;
     this.#progressEl.setAttribute("aria-valuenow", String(Math.round(progress.percent)));
     this.#progressEl.querySelector(".sj-progress-fill").style.inlineSize = `${progress.percent}%`;
     this.#timeEl.textContent = `${formatTime(progress.elapsedSeconds)} / ${formatTime(progress.durationSeconds)}`;

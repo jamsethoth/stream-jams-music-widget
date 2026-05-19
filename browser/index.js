@@ -248,7 +248,7 @@ var StreamJamsOverlay = (() => {
   };
 
   // src/sources/pearYoutubeMusicSource.js
-  var _config, _fetch, _WebSocket, _socket, _pollTimer, _reconnectTimer, _state2, _stopped, _PearYoutubeMusicSource_instances, connectWebSocket_fn, fallbackFromWebSocket_fn, startPolling_fn, pollOnce_fn, requestSong_fn, handleSocketMessage_fn, publishPearPayload_fn, publishPartialState_fn;
+  var _config, _fetch, _WebSocket, _socket, _pollTimer, _reconnectTimer, _webSocketRetryTimer, _state2, _stopped, _PearYoutubeMusicSource_instances, connectWebSocket_fn, fallbackFromWebSocket_fn, startPolling_fn, pollOnce_fn, requestSong_fn, handleSocketMessage_fn, publishPearPayload_fn, publishPartialState_fn, scheduleWebSocketRetry_fn;
   var PearYoutubeMusicSource = class extends EventEmitter {
     constructor(config, dependencies = {}) {
       var _a, _b, _c;
@@ -260,6 +260,7 @@ var StreamJamsOverlay = (() => {
       __privateAdd(this, _socket, null);
       __privateAdd(this, _pollTimer, 0);
       __privateAdd(this, _reconnectTimer, 0);
+      __privateAdd(this, _webSocketRetryTimer, 0);
       __privateAdd(this, _state2, null);
       __privateAdd(this, _stopped, false);
       __privateSet(this, _config, config);
@@ -280,6 +281,7 @@ var StreamJamsOverlay = (() => {
       __privateSet(this, _stopped, true);
       globalThis.clearInterval(__privateGet(this, _pollTimer));
       globalThis.clearTimeout(__privateGet(this, _reconnectTimer));
+      globalThis.clearTimeout(__privateGet(this, _webSocketRetryTimer));
       (_b = (_a = __privateGet(this, _socket)) == null ? void 0 : _a.close) == null ? void 0 : _b.call(_a);
       this.emit("connection", { state: "disconnected", message: "Disconnected" });
     }
@@ -297,6 +299,7 @@ var StreamJamsOverlay = (() => {
   _socket = new WeakMap();
   _pollTimer = new WeakMap();
   _reconnectTimer = new WeakMap();
+  _webSocketRetryTimer = new WeakMap();
   _state2 = new WeakMap();
   _stopped = new WeakMap();
   _PearYoutubeMusicSource_instances = new WeakSet();
@@ -308,7 +311,12 @@ var StreamJamsOverlay = (() => {
     const socket = new (__privateGet(this, _WebSocket))(`ws://${__privateGet(this, _config).host}:${__privateGet(this, _config).port}/api/v1/ws`);
     __privateSet(this, _socket, socket);
     socket.addEventListener("open", () => {
-      this.emit("connection", { state: "connected", message: "Live updates connected" });
+      if (__privateGet(this, _pollTimer)) {
+        globalThis.clearInterval(__privateGet(this, _pollTimer));
+        __privateSet(this, _pollTimer, 0);
+      }
+      globalThis.clearTimeout(__privateGet(this, _webSocketRetryTimer));
+      this.emit("connection", { state: "connected", message: "" });
     });
     socket.addEventListener("message", (event) => __privateMethod(this, _PearYoutubeMusicSource_instances, handleSocketMessage_fn).call(this, event.data));
     socket.addEventListener("error", () => __privateMethod(this, _PearYoutubeMusicSource_instances, fallbackFromWebSocket_fn).call(this));
@@ -325,11 +333,14 @@ var StreamJamsOverlay = (() => {
     });
   };
   fallbackFromWebSocket_fn = function() {
-    if (__privateGet(this, _config).transport === "ws" || __privateGet(this, _pollTimer)) {
+    if (__privateGet(this, _config).transport === "ws") {
       return;
     }
-    this.emit("connection", { state: "connecting", message: "Using polling fallback" });
-    __privateMethod(this, _PearYoutubeMusicSource_instances, startPolling_fn).call(this);
+    if (!__privateGet(this, _pollTimer)) {
+      this.emit("connection", { state: "connecting", message: "Using polling fallback" });
+      __privateMethod(this, _PearYoutubeMusicSource_instances, startPolling_fn).call(this);
+    }
+    __privateMethod(this, _PearYoutubeMusicSource_instances, scheduleWebSocketRetry_fn).call(this);
   };
   startPolling_fn = function() {
     __privateMethod(this, _PearYoutubeMusicSource_instances, pollOnce_fn).call(this);
@@ -395,6 +406,17 @@ var StreamJamsOverlay = (() => {
     }));
     this.emit("state", __privateGet(this, _state2));
   };
+  scheduleWebSocketRetry_fn = function() {
+    if (__privateGet(this, _config).transport !== "auto" || __privateGet(this, _webSocketRetryTimer)) {
+      return;
+    }
+    __privateSet(this, _webSocketRetryTimer, globalThis.setTimeout(() => {
+      __privateSet(this, _webSocketRetryTimer, 0);
+      if (!__privateGet(this, _stopped)) {
+        __privateMethod(this, _PearYoutubeMusicSource_instances, connectWebSocket_fn).call(this);
+      }
+    }, 3e3));
+  };
   function readPosition(message, fallback) {
     var _a, _b, _c, _d;
     const value = Number((_d = (_b = message.position) != null ? _b : (_a = message.payload) == null ? void 0 : _a.position) != null ? _d : (_c = message.data) == null ? void 0 : _c.position);
@@ -434,7 +456,7 @@ var StreamJamsOverlay = (() => {
   }
 
   // src/ui/overlayView.js
-  var _root, _statusEl, _artEl, _titleEl, _artistEl, _albumEl, _sourceEl, _progressEl, _timeEl;
+  var _root, _statusEl, _artEl, _titleEl, _artistEl, _albumEl, _progressEl, _timeEl;
   var OverlayView = class {
     constructor(root) {
       __privateAdd(this, _root);
@@ -443,7 +465,6 @@ var StreamJamsOverlay = (() => {
       __privateAdd(this, _titleEl);
       __privateAdd(this, _artistEl);
       __privateAdd(this, _albumEl);
-      __privateAdd(this, _sourceEl);
       __privateAdd(this, _progressEl);
       __privateAdd(this, _timeEl);
       __privateSet(this, _root, root);
@@ -451,7 +472,6 @@ var StreamJamsOverlay = (() => {
       <section class="sj-widget" aria-live="polite">
         <div class="sj-art" aria-hidden="true"><span>SJ</span></div>
         <div class="sj-copy">
-          <div class="sj-source"></div>
           <h1 class="sj-title">Connecting...</h1>
           <p class="sj-artist"></p>
           <p class="sj-album"></p>
@@ -459,18 +479,15 @@ var StreamJamsOverlay = (() => {
             <span class="sj-progress-fill"></span>
           </div>
           <div class="sj-meta">
-            <span class="sj-status">Starting overlay</span>
             <span class="sj-time">0:00 / 0:00</span>
           </div>
         </div>
       </section>
     `;
-      __privateSet(this, _statusEl, __privateGet(this, _root).querySelector(".sj-status"));
       __privateSet(this, _artEl, __privateGet(this, _root).querySelector(".sj-art"));
       __privateSet(this, _titleEl, __privateGet(this, _root).querySelector(".sj-title"));
       __privateSet(this, _artistEl, __privateGet(this, _root).querySelector(".sj-artist"));
       __privateSet(this, _albumEl, __privateGet(this, _root).querySelector(".sj-album"));
-      __privateSet(this, _sourceEl, __privateGet(this, _root).querySelector(".sj-source"));
       __privateSet(this, _progressEl, __privateGet(this, _root).querySelector(".sj-progress"));
       __privateSet(this, _timeEl, __privateGet(this, _root).querySelector(".sj-time"));
     }
@@ -492,7 +509,6 @@ var StreamJamsOverlay = (() => {
     `;
     }
     renderConnection(connection) {
-      __privateGet(this, _statusEl).textContent = connection.message;
       __privateGet(this, _root).dataset.connection = connection.state;
       if (connection.state === "waiting") {
         __privateGet(this, _titleEl).textContent = "Waiting for music";
@@ -505,7 +521,6 @@ var StreamJamsOverlay = (() => {
       __privateGet(this, _titleEl).textContent = state.title;
       __privateGet(this, _artistEl).textContent = state.artist;
       __privateGet(this, _albumEl).textContent = state.album;
-      __privateGet(this, _sourceEl).textContent = state.sourceName;
       __privateGet(this, _progressEl).setAttribute("aria-valuenow", String(Math.round(progress.percent)));
       __privateGet(this, _progressEl).querySelector(".sj-progress-fill").style.inlineSize = `${progress.percent}%`;
       __privateGet(this, _timeEl).textContent = `${formatTime(progress.elapsedSeconds)} / ${formatTime(progress.durationSeconds)}`;
@@ -524,7 +539,6 @@ var StreamJamsOverlay = (() => {
   _titleEl = new WeakMap();
   _artistEl = new WeakMap();
   _albumEl = new WeakMap();
-  _sourceEl = new WeakMap();
   _progressEl = new WeakMap();
   _timeEl = new WeakMap();
   function escapeHtml(value) {

@@ -100,16 +100,6 @@ body {
   min-inline-size: 0;
 }
 
-.sj-source {
-  min-block-size: 15px;
-  color: var(--sj-subtle);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0;
-  line-height: 1.35;
-  text-transform: uppercase;
-}
-
 .sj-title,
 .sj-artist,
 .sj-album {
@@ -160,15 +150,13 @@ body {
 
 .sj-meta {
   display: flex;
-  justify-content: space-between;
-  gap: 12px;
+  justify-content: flex-end;
   margin-block-start: 7px;
   color: var(--sj-subtle);
   font-size: 11px;
   line-height: 1.2;
 }
 
-.sj-status,
 .sj-time {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -192,8 +180,7 @@ body {
 }
 
 #app[data-view="compact"] .sj-art,
-#app[data-view="compact"] .sj-album,
-#app[data-view="compact"] .sj-source {
+#app[data-view="compact"] .sj-album {
   display: none;
 }
 

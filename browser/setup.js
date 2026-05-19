@@ -163,7 +163,7 @@ var StreamJamsSetup = (() => {
   }
 
   // src/sources/pearYoutubeMusicSource.js
-  var _config, _fetch, _WebSocket, _socket, _pollTimer, _reconnectTimer, _state, _stopped, _PearYoutubeMusicSource_instances, connectWebSocket_fn, fallbackFromWebSocket_fn, startPolling_fn, pollOnce_fn, requestSong_fn, handleSocketMessage_fn, publishPearPayload_fn, publishPartialState_fn;
+  var _config, _fetch, _WebSocket, _socket, _pollTimer, _reconnectTimer, _webSocketRetryTimer, _state, _stopped, _PearYoutubeMusicSource_instances, connectWebSocket_fn, fallbackFromWebSocket_fn, startPolling_fn, pollOnce_fn, requestSong_fn, handleSocketMessage_fn, publishPearPayload_fn, publishPartialState_fn, scheduleWebSocketRetry_fn;
   var PearYoutubeMusicSource = class extends EventEmitter {
     constructor(config, dependencies = {}) {
       var _a, _b, _c;
@@ -175,6 +175,7 @@ var StreamJamsSetup = (() => {
       __privateAdd(this, _socket, null);
       __privateAdd(this, _pollTimer, 0);
       __privateAdd(this, _reconnectTimer, 0);
+      __privateAdd(this, _webSocketRetryTimer, 0);
       __privateAdd(this, _state, null);
       __privateAdd(this, _stopped, false);
       __privateSet(this, _config, config);
@@ -195,6 +196,7 @@ var StreamJamsSetup = (() => {
       __privateSet(this, _stopped, true);
       globalThis.clearInterval(__privateGet(this, _pollTimer));
       globalThis.clearTimeout(__privateGet(this, _reconnectTimer));
+      globalThis.clearTimeout(__privateGet(this, _webSocketRetryTimer));
       (_b = (_a = __privateGet(this, _socket)) == null ? void 0 : _a.close) == null ? void 0 : _b.call(_a);
       this.emit("connection", { state: "disconnected", message: "Disconnected" });
     }
@@ -212,6 +214,7 @@ var StreamJamsSetup = (() => {
   _socket = new WeakMap();
   _pollTimer = new WeakMap();
   _reconnectTimer = new WeakMap();
+  _webSocketRetryTimer = new WeakMap();
   _state = new WeakMap();
   _stopped = new WeakMap();
   _PearYoutubeMusicSource_instances = new WeakSet();
@@ -223,7 +226,12 @@ var StreamJamsSetup = (() => {
     const socket = new (__privateGet(this, _WebSocket))(`ws://${__privateGet(this, _config).host}:${__privateGet(this, _config).port}/api/v1/ws`);
     __privateSet(this, _socket, socket);
     socket.addEventListener("open", () => {
-      this.emit("connection", { state: "connected", message: "Live updates connected" });
+      if (__privateGet(this, _pollTimer)) {
+        globalThis.clearInterval(__privateGet(this, _pollTimer));
+        __privateSet(this, _pollTimer, 0);
+      }
+      globalThis.clearTimeout(__privateGet(this, _webSocketRetryTimer));
+      this.emit("connection", { state: "connected", message: "" });
     });
     socket.addEventListener("message", (event) => __privateMethod(this, _PearYoutubeMusicSource_instances, handleSocketMessage_fn).call(this, event.data));
     socket.addEventListener("error", () => __privateMethod(this, _PearYoutubeMusicSource_instances, fallbackFromWebSocket_fn).call(this));
@@ -240,11 +248,14 @@ var StreamJamsSetup = (() => {
     });
   };
   fallbackFromWebSocket_fn = function() {
-    if (__privateGet(this, _config).transport === "ws" || __privateGet(this, _pollTimer)) {
+    if (__privateGet(this, _config).transport === "ws") {
       return;
     }
-    this.emit("connection", { state: "connecting", message: "Using polling fallback" });
-    __privateMethod(this, _PearYoutubeMusicSource_instances, startPolling_fn).call(this);
+    if (!__privateGet(this, _pollTimer)) {
+      this.emit("connection", { state: "connecting", message: "Using polling fallback" });
+      __privateMethod(this, _PearYoutubeMusicSource_instances, startPolling_fn).call(this);
+    }
+    __privateMethod(this, _PearYoutubeMusicSource_instances, scheduleWebSocketRetry_fn).call(this);
   };
   startPolling_fn = function() {
     __privateMethod(this, _PearYoutubeMusicSource_instances, pollOnce_fn).call(this);
@@ -309,6 +320,17 @@ var StreamJamsSetup = (() => {
       updatedAt: Date.now()
     }));
     this.emit("state", __privateGet(this, _state));
+  };
+  scheduleWebSocketRetry_fn = function() {
+    if (__privateGet(this, _config).transport !== "auto" || __privateGet(this, _webSocketRetryTimer)) {
+      return;
+    }
+    __privateSet(this, _webSocketRetryTimer, globalThis.setTimeout(() => {
+      __privateSet(this, _webSocketRetryTimer, 0);
+      if (!__privateGet(this, _stopped)) {
+        __privateMethod(this, _PearYoutubeMusicSource_instances, connectWebSocket_fn).call(this);
+      }
+    }, 3e3));
   };
   function readPosition(message, fallback) {
     var _a, _b, _c, _d;

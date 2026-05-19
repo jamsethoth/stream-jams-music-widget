@@ -1,7 +1,19 @@
 import assert from "node:assert/strict";
-import test from "node:test";
+import { afterEach, test } from "node:test";
 
 import { PearYoutubeMusicSource } from "../src/sources/pearYoutubeMusicSource.js";
+
+const originalSetInterval = globalThis.setInterval;
+const originalClearInterval = globalThis.clearInterval;
+const originalSetTimeout = globalThis.setTimeout;
+const originalClearTimeout = globalThis.clearTimeout;
+
+afterEach(() => {
+  globalThis.setInterval = originalSetInterval;
+  globalThis.clearInterval = originalClearInterval;
+  globalThis.setTimeout = originalSetTimeout;
+  globalThis.clearTimeout = originalClearTimeout;
+});
 
 test("PearYoutubeMusicSource preserves metadata when websocket sends position-only updates", () => {
   const socket = createSocketHarness();
@@ -83,21 +95,131 @@ test("PearYoutubeMusicSource preserves metadata when websocket sends play-state-
   assert.equal(state.isPlaying, false);
 });
 
+test("PearYoutubeMusicSource keeps polling after failed poll attempts", async () => {
+  const intervalCallbacks = [];
+  globalThis.setInterval = (callback) => {
+    intervalCallbacks.push(callback);
+    return intervalCallbacks.length;
+  };
+  globalThis.clearInterval = () => {};
+  let attempts = 0;
+  const source = new PearYoutubeMusicSource(
+    { integration: "pear-youtube-music", host: "127.0.0.1", port: 26538, transport: "poll" },
+    {
+      fetch: async () => {
+        attempts += 1;
+        if (attempts === 1) {
+          throw new Error("offline");
+        }
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            title: "Back Online",
+            artist: "Aster Pulse",
+            album: "Recovered",
+            isPaused: false,
+            songDuration: 120,
+            elapsedSeconds: 4,
+            videoId: "online",
+          }),
+        };
+      },
+    },
+  );
+
+  source.connect();
+  await flushPromises();
+  assert.equal(source.getCurrentState(), null);
+  assert.equal(intervalCallbacks.length, 1);
+
+  await intervalCallbacks[0]();
+  assert.equal(source.getCurrentState().title, "Back Online");
+  assert.equal(attempts, 2);
+});
+
+test("PearYoutubeMusicSource periodically reconnects websocket-only transport after connection closes", () => {
+  const timeoutCallbacks = [];
+  globalThis.setTimeout = (callback) => {
+    timeoutCallbacks.push(callback);
+    return timeoutCallbacks.length;
+  };
+  globalThis.clearTimeout = () => {};
+  const socket = createSocketHarness();
+  const source = new PearYoutubeMusicSource(
+    { integration: "pear-youtube-music", host: "127.0.0.1", port: 26538, transport: "ws" },
+    { WebSocket: socket.WebSocket },
+  );
+  const connections = [];
+  source.on("connection", (connection) => connections.push(connection.state));
+
+  source.connect();
+  socket.emit("close", {});
+
+  assert.equal(socket.instances.length, 1);
+  assert.equal(timeoutCallbacks.length, 1);
+  timeoutCallbacks[0]();
+  assert.equal(socket.instances.length, 2);
+  assert.deepEqual(connections, ["connecting", "disconnected"]);
+});
+
+test("PearYoutubeMusicSource periodically retries websocket after auto fallback", () => {
+  const timeoutCallbacks = [];
+  globalThis.setInterval = () => 1;
+  globalThis.clearInterval = () => {};
+  globalThis.setTimeout = (callback) => {
+    timeoutCallbacks.push(callback);
+    return timeoutCallbacks.length;
+  };
+  globalThis.clearTimeout = () => {};
+  const socket = createSocketHarness();
+  const source = new PearYoutubeMusicSource(
+    { integration: "pear-youtube-music", host: "127.0.0.1", port: 26538, transport: "auto" },
+    {
+      WebSocket: socket.WebSocket,
+      fetch: async () => {
+        throw new Error("offline");
+      },
+    },
+  );
+
+  source.connect();
+  socket.emit("error", {});
+
+  assert.equal(socket.instances.length, 1);
+  assert.equal(timeoutCallbacks.length, 1);
+  timeoutCallbacks[0]();
+  assert.equal(socket.instances.length, 2);
+  socket.emit("error", {});
+  assert.equal(timeoutCallbacks.length, 2);
+  timeoutCallbacks[1]();
+  assert.equal(socket.instances.length, 3);
+  source.disconnect();
+});
+
 function createSocketHarness() {
   const listeners = new Map();
+  const instances = [];
   return {
     WebSocket: class {
       constructor() {
-        return {
+        const instance = {
           addEventListener(type, handler) {
             listeners.set(type, handler);
           },
           close() {},
         };
+        instances.push(instance);
+        return instance;
       }
     },
+    instances,
     emit(type, event) {
       listeners.get(type)(event);
     },
   };
+}
+
+function flushPromises() {
+  return new Promise((resolve) => setTimeout(resolve, 0));
 }

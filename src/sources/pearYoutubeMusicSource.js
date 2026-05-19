@@ -8,6 +8,7 @@ export class PearYoutubeMusicSource extends EventEmitter {
   #socket = null;
   #pollTimer = 0;
   #reconnectTimer = 0;
+  #webSocketRetryTimer = 0;
   #state = null;
   #stopped = false;
 
@@ -32,6 +33,7 @@ export class PearYoutubeMusicSource extends EventEmitter {
     this.#stopped = true;
     globalThis.clearInterval(this.#pollTimer);
     globalThis.clearTimeout(this.#reconnectTimer);
+    globalThis.clearTimeout(this.#webSocketRetryTimer);
     this.#socket?.close?.();
     this.emit("connection", { state: "disconnected", message: "Disconnected" });
   }
@@ -54,7 +56,12 @@ export class PearYoutubeMusicSource extends EventEmitter {
     const socket = new this.#WebSocket(`ws://${this.#config.host}:${this.#config.port}/api/v1/ws`);
     this.#socket = socket;
     socket.addEventListener("open", () => {
-      this.emit("connection", { state: "connected", message: "Live updates connected" });
+      if (this.#pollTimer) {
+        globalThis.clearInterval(this.#pollTimer);
+        this.#pollTimer = 0;
+      }
+      globalThis.clearTimeout(this.#webSocketRetryTimer);
+      this.emit("connection", { state: "connected", message: "" });
     });
     socket.addEventListener("message", (event) => this.#handleSocketMessage(event.data));
     socket.addEventListener("error", () => this.#fallbackFromWebSocket());
@@ -72,11 +79,14 @@ export class PearYoutubeMusicSource extends EventEmitter {
   }
 
   #fallbackFromWebSocket() {
-    if (this.#config.transport === "ws" || this.#pollTimer) {
+    if (this.#config.transport === "ws") {
       return;
     }
-    this.emit("connection", { state: "connecting", message: "Using polling fallback" });
-    this.#startPolling();
+    if (!this.#pollTimer) {
+      this.emit("connection", { state: "connecting", message: "Using polling fallback" });
+      this.#startPolling();
+    }
+    this.#scheduleWebSocketRetry();
   }
 
   #startPolling() {
@@ -147,6 +157,18 @@ export class PearYoutubeMusicSource extends EventEmitter {
       updatedAt: Date.now(),
     });
     this.emit("state", this.#state);
+  }
+
+  #scheduleWebSocketRetry() {
+    if (this.#config.transport !== "auto" || this.#webSocketRetryTimer) {
+      return;
+    }
+    this.#webSocketRetryTimer = globalThis.setTimeout(() => {
+      this.#webSocketRetryTimer = 0;
+      if (!this.#stopped) {
+        this.#connectWebSocket();
+      }
+    }, 3000);
   }
 }
 
