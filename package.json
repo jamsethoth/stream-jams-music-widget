@@ -5,11 +5,13 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/build-browser-bundles.js",
+    "package": "node scripts/package-runtime.js",
     "test": "node --test",
     "validate": "node --test && node scripts/validate-static-pages.js"
   },
   "devDependencies": {
-    "esbuild": "^0.25.0"
+    "esbuild": "^0.25.0",
+    "yazl": "^3.3.1"
   },
   "engines": {
     "node": ">=20"

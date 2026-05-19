@@ -72,7 +72,10 @@ npm install
 npm run build
 npm test
 npm run validate
+npm run package
 ```
+
+`npm run package` creates a local runtime zip in `dist/` containing only the files needed to run or host the widget.
 
 In this local workspace, Node is not available inside WSL 1, so the same test files can also be checked with Deno:
 
