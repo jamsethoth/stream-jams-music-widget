@@ -21,6 +21,7 @@ export function parseOverlayConfig(input = globalThis.location?.href ?? "") {
   const idleMode = readEnum(params, "idleMode", IDLE_MODES, "none", errors);
   const theme = readEnum(params, "theme", THEMES, "dark", errors);
   const idleAfter = readInteger(params, "idleAfter", 30, { min: 1, max: 600 }, errors);
+  const backgroundOpacity = readInteger(params, "backgroundOpacity", 84, { min: 0, max: 100 }, errors);
   const customCss = normalizeCustomCss(params.get("customCss") ?? "", errors);
 
   let host = "";
@@ -48,6 +49,7 @@ export function parseOverlayConfig(input = globalThis.location?.href ?? "") {
     idleMode,
     idleAfter,
     theme,
+    backgroundOpacity,
     customCss,
   };
 }

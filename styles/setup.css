@@ -186,6 +186,28 @@ select {
   padding: 9px 11px;
 }
 
+input[type="range"] {
+  min-block-size: 24px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  accent-color: var(--accent);
+}
+
+.setup-range-label {
+  grid-template-columns: 1fr auto;
+  align-items: center;
+}
+
+.setup-range-label input {
+  grid-column: 1 / -1;
+}
+
+.setup-range-label output {
+  font-size: 13px;
+  font-weight: 850;
+}
+
 input:focus,
 select:focus,
 button:focus-visible,
@@ -245,7 +267,7 @@ button,
   color: var(--text);
 }
 
-output {
+.setup-output output {
   display: block;
   overflow-wrap: anywhere;
   border: 1px solid var(--border);

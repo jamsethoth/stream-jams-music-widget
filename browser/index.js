@@ -57,6 +57,7 @@ var StreamJamsOverlay = (() => {
     const idleMode = readEnum(params, "idleMode", IDLE_MODES, "none", errors);
     const theme = readEnum(params, "theme", THEMES, "dark", errors);
     const idleAfter = readInteger(params, "idleAfter", 30, { min: 1, max: 600 }, errors);
+    const backgroundOpacity = readInteger(params, "backgroundOpacity", 84, { min: 0, max: 100 }, errors);
     const customCss = normalizeCustomCss((_b2 = params.get("customCss")) != null ? _b2 : "", errors);
     let host = "";
     let port = 0;
@@ -80,6 +81,7 @@ var StreamJamsOverlay = (() => {
       idleMode,
       idleAfter,
       theme,
+      backgroundOpacity,
       customCss
     };
   }
@@ -509,6 +511,10 @@ var StreamJamsOverlay = (() => {
     setTheme(theme) {
       document.documentElement.dataset.theme = theme;
     }
+    setBackgroundOpacity(opacityPercent) {
+      const opacity = Math.min(100, Math.max(0, Number(opacityPercent))) / 100;
+      document.documentElement.style.setProperty("--sj-bg-opacity", String(opacity));
+    }
     setView(view) {
       __privateGet(this, _root).dataset.view = view;
     }
@@ -594,6 +600,7 @@ var StreamJamsOverlay = (() => {
       } };
     }
     view.setTheme(config.theme);
+    view.setBackgroundOpacity(config.backgroundOpacity);
     view.setView(config.initialView);
     loadCustomCss(config.customCss);
     const source = createMusicSource(config);

@@ -60,6 +60,7 @@ var StreamJamsSetup = (() => {
     idleMode: "none",
     idleAfter: 30,
     theme: "dark",
+    backgroundOpacity: 84,
     customCss: ""
   };
   var SAFE_KEYS = Object.keys(setupDefaults);
@@ -89,6 +90,7 @@ var StreamJamsSetup = (() => {
     }
     next.port = clampInteger(next.port, setupDefaults.port, 1, 65535);
     next.idleAfter = clampInteger(next.idleAfter, setupDefaults.idleAfter, 1, 600);
+    next.backgroundOpacity = clampInteger(next.backgroundOpacity, setupDefaults.backgroundOpacity, 0, 100);
     return next;
   }
   function buildOverlayUrl(values, baseHref = ((_b) => (_b = ((_a) => (_a = globalThis.location) == null ? void 0 : _a.href)()) != null ? _b : "")()) {
@@ -372,12 +374,14 @@ var StreamJamsSetup = (() => {
   }
 
   // src/ui/setupView.js
-  var _form, _urlOutput, _status, _sourceMenu, _pearPanel, _spotifyPanel, _onChange, _onTest;
+  var _form, _urlOutput, _status, _backgroundOpacityOutput, _sourceMenu, _pearPanel, _spotifyPanel, _onChange, _onTest, _SetupView_instances, updateBackgroundOpacityOutput_fn;
   var SetupView = class {
     constructor(root, initialValues, handlers) {
+      __privateAdd(this, _SetupView_instances);
       __privateAdd(this, _form);
       __privateAdd(this, _urlOutput);
       __privateAdd(this, _status);
+      __privateAdd(this, _backgroundOpacityOutput);
       __privateAdd(this, _sourceMenu);
       __privateAdd(this, _pearPanel);
       __privateAdd(this, _spotifyPanel);
@@ -451,6 +455,10 @@ var StreamJamsSetup = (() => {
                 <label>Idle after
                   <input name="idleAfter" type="number" min="1" max="600" value="${initialValues.idleAfter}">
                 </label>
+                <label class="setup-wide setup-range-label">
+                  Background opacity <output data-background-opacity>${initialValues.backgroundOpacity}%</output>
+                  <input name="backgroundOpacity" type="range" min="0" max="100" step="1" value="${initialValues.backgroundOpacity}">
+                </label>
                 <label class="setup-wide">Custom CSS
                   <input name="customCss" value="${initialValues.customCss}" placeholder="custom-theme.css">
                 </label>
@@ -475,8 +483,9 @@ var StreamJamsSetup = (() => {
       </main>
     `;
       __privateSet(this, _form, root.querySelector("form"));
-      __privateSet(this, _urlOutput, root.querySelector("output"));
+      __privateSet(this, _urlOutput, root.querySelector(".setup-output output"));
       __privateSet(this, _status, root.querySelector(".setup-status"));
+      __privateSet(this, _backgroundOpacityOutput, root.querySelector("[data-background-opacity]"));
       __privateSet(this, _sourceMenu, root.querySelector(".setup-source-menu"));
       __privateSet(this, _pearPanel, root.querySelector('[data-panel="pear"]'));
       __privateSet(this, _spotifyPanel, root.querySelector('[data-panel="spotify"]'));
@@ -487,7 +496,11 @@ var StreamJamsSetup = (() => {
         button.addEventListener("click", () => this.showSourceMenu());
       });
       root.querySelector("[data-action='test']").addEventListener("click", () => __privateGet(this, _onTest).call(this, this.readValues()));
-      __privateGet(this, _form).addEventListener("input", () => __privateGet(this, _onChange).call(this, this.readValues()));
+      __privateGet(this, _form).addEventListener("input", () => {
+        __privateMethod(this, _SetupView_instances, updateBackgroundOpacityOutput_fn).call(this);
+        __privateGet(this, _onChange).call(this, this.readValues());
+      });
+      __privateMethod(this, _SetupView_instances, updateBackgroundOpacityOutput_fn).call(this);
     }
     readValues() {
       return Object.fromEntries(new FormData(__privateGet(this, _form)).entries());
@@ -519,11 +532,16 @@ var StreamJamsSetup = (() => {
   _form = new WeakMap();
   _urlOutput = new WeakMap();
   _status = new WeakMap();
+  _backgroundOpacityOutput = new WeakMap();
   _sourceMenu = new WeakMap();
   _pearPanel = new WeakMap();
   _spotifyPanel = new WeakMap();
   _onChange = new WeakMap();
   _onTest = new WeakMap();
+  _SetupView_instances = new WeakSet();
+  updateBackgroundOpacityOutput_fn = function() {
+    __privateGet(this, _backgroundOpacityOutput).textContent = `${__privateGet(this, _form).elements.backgroundOpacity.value}%`;
+  };
   function sourceCard(integration) {
     const statusText = integration.status === "coming-soon" ? "Coming soon" : "Available";
     return `

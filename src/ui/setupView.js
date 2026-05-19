@@ -4,6 +4,7 @@ export class SetupView {
   #form;
   #urlOutput;
   #status;
+  #backgroundOpacityOutput;
   #sourceMenu;
   #pearPanel;
   #spotifyPanel;
@@ -79,6 +80,10 @@ export class SetupView {
                 <label>Idle after
                   <input name="idleAfter" type="number" min="1" max="600" value="${initialValues.idleAfter}">
                 </label>
+                <label class="setup-wide setup-range-label">
+                  Background opacity <output data-background-opacity>${initialValues.backgroundOpacity}%</output>
+                  <input name="backgroundOpacity" type="range" min="0" max="100" step="1" value="${initialValues.backgroundOpacity}">
+                </label>
                 <label class="setup-wide">Custom CSS
                   <input name="customCss" value="${initialValues.customCss}" placeholder="custom-theme.css">
                 </label>
@@ -103,8 +108,9 @@ export class SetupView {
       </main>
     `;
     this.#form = root.querySelector("form");
-    this.#urlOutput = root.querySelector("output");
+    this.#urlOutput = root.querySelector(".setup-output output");
     this.#status = root.querySelector(".setup-status");
+    this.#backgroundOpacityOutput = root.querySelector("[data-background-opacity]");
     this.#sourceMenu = root.querySelector(".setup-source-menu");
     this.#pearPanel = root.querySelector('[data-panel="pear"]');
     this.#spotifyPanel = root.querySelector('[data-panel="spotify"]');
@@ -115,7 +121,11 @@ export class SetupView {
       button.addEventListener("click", () => this.showSourceMenu());
     });
     root.querySelector("[data-action='test']").addEventListener("click", () => this.#onTest(this.readValues()));
-    this.#form.addEventListener("input", () => this.#onChange(this.readValues()));
+    this.#form.addEventListener("input", () => {
+      this.#updateBackgroundOpacityOutput();
+      this.#onChange(this.readValues());
+    });
+    this.#updateBackgroundOpacityOutput();
   }
 
   readValues() {
@@ -132,6 +142,10 @@ export class SetupView {
   renderStatus(message, tone = "neutral") {
     this.#status.textContent = message;
     this.#status.dataset.tone = tone;
+  }
+
+  #updateBackgroundOpacityOutput() {
+    this.#backgroundOpacityOutput.textContent = `${this.#form.elements.backgroundOpacity.value}%`;
   }
 
   showSource(sourceId) {

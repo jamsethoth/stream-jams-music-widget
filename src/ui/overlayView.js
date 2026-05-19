@@ -36,6 +36,11 @@ export class OverlayView {
     document.documentElement.dataset.theme = theme;
   }
 
+  setBackgroundOpacity(opacityPercent) {
+    const opacity = Math.min(100, Math.max(0, Number(opacityPercent))) / 100;
+    document.documentElement.style.setProperty("--sj-bg-opacity", String(opacity));
+  }
+
   setView(view) {
     this.#root.dataset.view = view;
   }

@@ -18,6 +18,7 @@ test("parseOverlayConfig accepts the default Pear YouTube Music URL parameters",
     idleMode: "none",
     idleAfter: 30,
     theme: "dark",
+    backgroundOpacity: 84,
     customCss: "",
   });
 });
@@ -40,4 +41,22 @@ test("parseOverlayConfig allows mock mode without host and port", () => {
   assert.equal(config.port, 0);
   assert.equal(config.theme, "light");
   assert.equal(config.initialView, "compact");
+});
+
+test("parseOverlayConfig accepts a bounded background opacity percentage", () => {
+  const config = parseOverlayConfig(
+    "https://example.test/index.html?integration=mock&theme=dark&backgroundOpacity=62",
+  );
+
+  assert.equal(config.ok, true);
+  assert.equal(config.backgroundOpacity, 62);
+});
+
+test("parseOverlayConfig rejects background opacity outside 0 to 100", () => {
+  const config = parseOverlayConfig(
+    "https://example.test/index.html?integration=mock&theme=dark&backgroundOpacity=101",
+  );
+
+  assert.equal(config.ok, false);
+  assert.match(config.errors.join("\n"), /backgroundOpacity/);
 });

@@ -24,6 +24,7 @@ export const setupDefaults = {
   idleMode: "none",
   idleAfter: 30,
   theme: "dark",
+  backgroundOpacity: 84,
   customCss: "",
 };
 
@@ -57,6 +58,7 @@ export function sanitizeSetupPreferences(values) {
   }
   next.port = clampInteger(next.port, setupDefaults.port, 1, 65535);
   next.idleAfter = clampInteger(next.idleAfter, setupDefaults.idleAfter, 1, 600);
+  next.backgroundOpacity = clampInteger(next.backgroundOpacity, setupDefaults.backgroundOpacity, 0, 100);
   return next;
 }
 

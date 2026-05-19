@@ -12,6 +12,7 @@ export function startOverlayApp(root = document.querySelector("#app"), href = gl
   }
 
   view.setTheme(config.theme);
+  view.setBackgroundOpacity(config.backgroundOpacity);
   view.setView(config.initialView);
   loadCustomCss(config.customCss);
 

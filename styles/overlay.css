@@ -1,11 +1,13 @@
 :root {
   color-scheme: dark;
-  --sj-bg: rgba(12, 13, 16, 0.84);
-  --sj-bg-strong: rgba(22, 24, 29, 0.92);
+  --sj-bg-rgb: 12, 13, 16;
+  --sj-bg-strong-rgb: 22, 24, 29;
+  --sj-bg-opacity: 0.84;
   --sj-text: #f7f7f5;
   --sj-muted: #b7b8bd;
   --sj-subtle: #858894;
   --sj-accent: #7bdff2;
+  --sj-progress-fill: #aeb4bf;
   --sj-progress-bg: rgba(255, 255, 255, 0.18);
   --sj-border: rgba(255, 255, 255, 0.14);
   --sj-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
@@ -17,12 +19,13 @@
 
 :root[data-theme="light"] {
   color-scheme: light;
-  --sj-bg: rgba(247, 248, 246, 0.88);
-  --sj-bg-strong: rgba(255, 255, 255, 0.94);
+  --sj-bg-rgb: 247, 248, 246;
+  --sj-bg-strong-rgb: 255, 255, 255;
   --sj-text: #16181d;
   --sj-muted: #4d5562;
   --sj-subtle: #6f7784;
   --sj-accent: #207f92;
+  --sj-progress-fill: #5d6673;
   --sj-progress-bg: rgba(22, 24, 29, 0.16);
   --sj-border: rgba(22, 24, 29, 0.12);
   --sj-shadow: 0 18px 50px rgba(10, 20, 28, 0.14);
@@ -73,7 +76,11 @@ body {
   padding: 14px;
   border: 1px solid var(--sj-border);
   border-radius: 8px;
-  background: linear-gradient(140deg, var(--sj-bg), var(--sj-bg-strong));
+  background: linear-gradient(
+    140deg,
+    rgba(var(--sj-bg-rgb), var(--sj-bg-opacity)),
+    rgba(var(--sj-bg-strong-rgb), var(--sj-bg-opacity))
+  );
   box-shadow: var(--sj-shadow);
   backdrop-filter: blur(18px);
 }
@@ -186,7 +193,7 @@ body {
   block-size: 100%;
   inline-size: 0%;
   border-radius: inherit;
-  background: var(--sj-accent);
+  background: var(--sj-progress-fill);
   transition: inline-size 180ms linear;
 }
 
