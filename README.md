@@ -45,7 +45,7 @@ This repository now contains a static first pass of the widget:
 
 - `setup.html` builds an OBS-ready overlay URL.
 - `index.html` renders the overlay.
-- `browser/` contains file-safe classic browser scripts used by the HTML entrypoints.
+- `browser/` contains generated file-safe classic browser scripts used by the HTML entrypoints.
 - `src/` contains testable ES modules for config parsing, source integration, state normalization, progress interpolation, and rendering.
 - `tests/` covers the pure behavior that should stay stable as integrations are added.
 - `.github/workflows/validate.yml` is ready to run validation in GitHub Actions.
@@ -64,10 +64,12 @@ index.html?integration=mock&theme=dark&initialView=full&idleMode=compact&idleAft
 
 ## Development
 
-The project is dependency-free for the first iteration and uses ES modules.
-The checked-in HTML entrypoints intentionally load classic scripts from `browser/` so they can be opened directly from `file:///` in OBS or a browser without ES module CORS errors.
+The project uses ES modules in `src/` as the source of truth.
+The checked-in HTML entrypoints intentionally load generated classic scripts from `browser/` so they can be opened directly from `file:///` in OBS or a browser without ES module CORS errors.
 
 ```bash
+npm install
+npm run build
 npm test
 npm run validate
 ```

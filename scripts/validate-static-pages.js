@@ -1,8 +1,11 @@
 import { readFile } from "node:fs/promises";
+import { buildBrowserBundles } from "./build-browser-bundles.js";
 
 const requiredFiles = [
   "index.html",
   "setup.html",
+  "browser/index.js",
+  "browser/setup.js",
   "styles/overlay.css",
   "styles/setup.css",
   "src/app/overlayApp.js",
@@ -37,6 +40,29 @@ for (const htmlFile of ["index.html", "setup.html"]) {
   } catch {
     // Missing file is already reported above.
   }
+}
+
+for (const file of ["browser/index.js", "browser/setup.js"]) {
+  try {
+    const contents = await readFile(new URL(`../${file}`, import.meta.url), "utf8");
+    if (!contents.includes("Generated from src/ by scripts/build-browser-bundles.js")) {
+      failures.push(`${file} must be generated from src/ and include the generated-file marker`);
+    }
+  } catch {
+    // Missing file is already reported above when relevant.
+  }
+}
+
+try {
+  const generated = await buildBrowserBundles({ write: false });
+  for (const bundle of generated) {
+    const current = await readFile(new URL(`../${bundle.outputPath}`, import.meta.url), "utf8");
+    if (current !== bundle.contents) {
+      failures.push(`${bundle.outputPath} is stale. Run npm run build.`);
+    }
+  }
+} catch (error) {
+  failures.push(`Unable to verify generated browser bundles: ${error.message}`);
 }
 
 if (failures.length > 0) {

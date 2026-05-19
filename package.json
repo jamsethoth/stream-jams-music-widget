@@ -4,8 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build": "node scripts/build-browser-bundles.js",
     "test": "node --test",
     "validate": "node --test && node scripts/validate-static-pages.js"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
   },
   "engines": {
     "node": ">=20"
