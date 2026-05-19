@@ -456,15 +456,13 @@ var StreamJamsOverlay = (() => {
   }
 
   // src/ui/overlayView.js
-  var _root, _statusEl, _artEl, _titleEl, _artistEl, _albumEl, _progressEl, _timeEl;
+  var _root, _artEl, _titleEl, _detailsEl, _progressEl, _timeEl;
   var OverlayView = class {
     constructor(root) {
       __privateAdd(this, _root);
-      __privateAdd(this, _statusEl);
       __privateAdd(this, _artEl);
       __privateAdd(this, _titleEl);
-      __privateAdd(this, _artistEl);
-      __privateAdd(this, _albumEl);
+      __privateAdd(this, _detailsEl);
       __privateAdd(this, _progressEl);
       __privateAdd(this, _timeEl);
       __privateSet(this, _root, root);
@@ -472,22 +470,20 @@ var StreamJamsOverlay = (() => {
       <section class="sj-widget" aria-live="polite">
         <div class="sj-art" aria-hidden="true"><span>SJ</span></div>
         <div class="sj-copy">
-          <h1 class="sj-title">Connecting...</h1>
-          <p class="sj-artist"></p>
-          <p class="sj-album"></p>
-          <div class="sj-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-            <span class="sj-progress-fill"></span>
-          </div>
-          <div class="sj-meta">
-            <span class="sj-time">0:00 / 0:00</span>
+          <h1 class="sj-title"><span>Connecting...</span></h1>
+          <p class="sj-details"><span></span></p>
+          <div class="sj-progress-row">
+            <div class="sj-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+              <span class="sj-progress-fill"></span>
+            </div>
+            <span class="sj-time">0:00</span>
           </div>
         </div>
       </section>
     `;
       __privateSet(this, _artEl, __privateGet(this, _root).querySelector(".sj-art"));
       __privateSet(this, _titleEl, __privateGet(this, _root).querySelector(".sj-title"));
-      __privateSet(this, _artistEl, __privateGet(this, _root).querySelector(".sj-artist"));
-      __privateSet(this, _albumEl, __privateGet(this, _root).querySelector(".sj-album"));
+      __privateSet(this, _detailsEl, __privateGet(this, _root).querySelector(".sj-details"));
       __privateSet(this, _progressEl, __privateGet(this, _root).querySelector(".sj-progress"));
       __privateSet(this, _timeEl, __privateGet(this, _root).querySelector(".sj-time"));
     }
@@ -511,19 +507,17 @@ var StreamJamsOverlay = (() => {
     renderConnection(connection) {
       __privateGet(this, _root).dataset.connection = connection.state;
       if (connection.state === "waiting") {
-        __privateGet(this, _titleEl).textContent = "Waiting for music";
-        __privateGet(this, _artistEl).textContent = "Start a track in YouTube Music";
-        __privateGet(this, _albumEl).textContent = "";
+        setScrollingText(__privateGet(this, _titleEl), "Waiting for music");
+        setScrollingText(__privateGet(this, _detailsEl), "Start a track in YouTube Music");
       }
     }
     renderTrack(state, now = Date.now()) {
       const progress = getDisplayedProgress(state, now);
-      __privateGet(this, _titleEl).textContent = state.title;
-      __privateGet(this, _artistEl).textContent = state.artist;
-      __privateGet(this, _albumEl).textContent = state.album;
+      setScrollingText(__privateGet(this, _titleEl), state.title);
+      setScrollingText(__privateGet(this, _detailsEl), formatTrackDetails(state));
       __privateGet(this, _progressEl).setAttribute("aria-valuenow", String(Math.round(progress.percent)));
       __privateGet(this, _progressEl).querySelector(".sj-progress-fill").style.inlineSize = `${progress.percent}%`;
-      __privateGet(this, _timeEl).textContent = `${formatTime(progress.elapsedSeconds)} / ${formatTime(progress.durationSeconds)}`;
+      __privateGet(this, _timeEl).textContent = formatTime(progress.elapsedSeconds);
       if (state.artworkUrl) {
         __privateGet(this, _artEl).style.backgroundImage = `url("${state.artworkUrl.replaceAll('"', "%22")}")`;
         __privateGet(this, _artEl).classList.add("has-art");
@@ -534,13 +528,39 @@ var StreamJamsOverlay = (() => {
     }
   };
   _root = new WeakMap();
-  _statusEl = new WeakMap();
   _artEl = new WeakMap();
   _titleEl = new WeakMap();
-  _artistEl = new WeakMap();
-  _albumEl = new WeakMap();
+  _detailsEl = new WeakMap();
   _progressEl = new WeakMap();
   _timeEl = new WeakMap();
+  function formatTrackDetails(state) {
+    return [state.artist, state.album].filter(Boolean).join(" - ");
+  }
+  function setScrollingText(element, value) {
+    const text = value || "";
+    let content = element.querySelector("span");
+    if (!content) {
+      content = document.createElement("span");
+      element.textContent = "";
+      element.append(content);
+    }
+    if (content.textContent !== text) {
+      content.textContent = text;
+      element.classList.remove("is-overflowing");
+    }
+    requestAnimationFrame(() => {
+      const isOverflowing = content.scrollWidth > element.clientWidth;
+      element.classList.toggle("is-overflowing", isOverflowing);
+      if (isOverflowing) {
+        const distance = content.scrollWidth - element.clientWidth;
+        element.style.setProperty("--sj-scroll-distance", `${distance + 18}px`);
+        element.style.setProperty("--sj-scroll-duration", `${Math.max(10, Math.min(28, distance / 12))}s`);
+      } else {
+        element.style.removeProperty("--sj-scroll-distance");
+        element.style.removeProperty("--sj-scroll-duration");
+      }
+    });
+  }
   function escapeHtml(value) {
     return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
   }
